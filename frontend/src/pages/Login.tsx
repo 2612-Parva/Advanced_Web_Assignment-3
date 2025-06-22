@@ -24,7 +24,7 @@ function Login() {
               className="w-full border border-gray-300 rounded px-3 py-2"
               placeholder="Enter E-Mail"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: { target: { value: any } }) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -54,7 +54,7 @@ function Login() {
           </button>
 
           <p className="text-sm text-center">
-            Don’t Have An Account? <a href="/register" className="text-blue-600 hover:underline">Sign Up</a>
+            Don’t Have An Account? <a href="/patientregister" className="text-blue-600 hover:underline">Sign Up</a>
           </p>
         </form>
       </div>

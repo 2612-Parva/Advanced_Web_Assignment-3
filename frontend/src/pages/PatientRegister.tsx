@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Register() {
+function PatientRegister() {
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -11,6 +11,7 @@ function Register() {
     password: '',
     confirmPassword: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -25,9 +26,11 @@ function Register() {
     <div className="min-h-screen flex">
       {/* Left side */}
       <div className="flex flex-col justify-center w-full md:w-1/2 px-10">
-        <div className="flex justify-between mb-6">
-          <button className="bg-blue-800 text-white px-6 py-2 rounded-l-md">Patient</button>
-          <button className="bg-gray-100 px-6 py-2 rounded-r-md">Doctor</button>
+        <div className="mb-6 flex justify-center">
+          <div className="inline-flex rounded-md shadow-sm overflow-hidden border border-gray-300">
+            <button type="button" className="bg-blue-800 text-white px-6 py-2 text-sm font-medium">Patient</button>
+            <button type="button" className="bg-white text-gray-800 px-6 py-2 text-sm font-medium hover:bg-gray-100">Doctor</button>
+          </div>
         </div>
 
         <h1 className="text-2xl font-bold mb-2">Sign In</h1>
@@ -40,9 +43,7 @@ function Register() {
           <input type="date" name="dob" className="border p-2 rounded" value={form.dob} onChange={handleChange} required />
           <select name="age" className="border p-2 rounded" value={form.age} onChange={handleChange} required>
             <option value="">Select Age</option>
-            {Array.from({ length: 83 }, (_, i) => (
-              <option key={i} value={i + 18}>{i + 18}</option>
-            ))}
+            {Array.from({ length: 83 }, (_, i) => <option key={i} value={i + 18}>{i + 18}</option>)}
           </select>
           <select name="gender" className="border p-2 rounded" value={form.gender} onChange={handleChange} required>
             <option value="">Select Gender</option>
@@ -50,14 +51,15 @@ function Register() {
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
-          <input type="password" name="password" placeholder="Enter Password" className="border p-2 rounded" value={form.password} onChange={handleChange} required />
+          <div className="relative">
+            <input type={showPassword ? "text" : "password"} name="password" placeholder="Enter Password" className="border p-2 rounded w-full" value={form.password} onChange={handleChange} required />
+            <span onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-2 cursor-pointer text-sm text-blue-700">{showPassword ? "Hide" : "Show"}</span>
+          </div>
           <input type="password" name="confirmPassword" placeholder="Enter Confirm Password" className="border p-2 rounded" value={form.confirmPassword} onChange={handleChange} required />
           <button type="submit" className="col-span-1 md:col-span-2 bg-blue-800 text-white py-2 rounded mt-2">Sign In</button>
         </form>
 
-        <p className="text-sm text-center mt-4">
-          Already Have An Account? <a href="/login" className="text-blue-600 hover:underline">Login</a>
-        </p>
+        <p className="text-sm text-center mt-4">Already Have An Account? <a href="/login" className="text-blue-600 hover:underline">Login</a></p>
       </div>
 
       {/* Right side */}
@@ -65,12 +67,10 @@ function Register() {
         <h1 className="text-3xl font-bold mb-4 text-pink-400">Hello<span className="text-white">Doc</span></h1>
         <img src="/login-illustration.png" alt="Doctor" className="w-64 mb-6" />
         <h2 className="text-xl font-semibold mb-2 text-center">Sign In To Your Account</h2>
-        <p className="text-sm text-center max-w-sm">
-          Access Virtual Care, Manage Appointments, And Connect With Healthcare Providers — All in One Place.
-        </p>
+        <p className="text-sm text-center max-w-sm">Access Virtual Care, Manage Appointments, And Connect With Healthcare Providers — All in One Place.</p>
       </div>
     </div>
   )
 }
 
-export default Register
+export default PatientRegister
