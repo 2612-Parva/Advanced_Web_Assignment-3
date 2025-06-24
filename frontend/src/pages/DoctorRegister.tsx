@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-function PatientRegister() {
+function DoctorRegister() {
   const [form, setForm] = useState({
     fullName: '',
     email: '',
     phone: '',
     dob: '',
+    specialty: '',
     age: '',
     gender: '',
     password: '',
@@ -29,9 +30,23 @@ function PatientRegister() {
     "What was your childhood nickname?"
   ];
 
+  const specialties = [
+    "Cardiology",
+    "Neurology",
+    "Pediatrics",
+    "General Medicine",
+    "Dermatology",
+    "Orthopedics",
+    "Ophthalmology",
+    "Psychiatry"
+  ];
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,37 +60,50 @@ function PatientRegister() {
       return;
     }
 
-    if (parseInt(form.age) < 18) {
-      setError('You must be at least 18 years old to register as a patient');
+    if (parseInt(form.age) < 25) {
+      setError('You must be at least 25 years old to register as a doctor');
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5050/api/auth/register', {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          ...form,
-          role: 'patient',
+          fullName: form.fullName,
+          email: form.email,
+          password: form.password,
+          role: 'doctor',
           securityQuestion,
-          securityAnswer
+          securityAnswer,
+          phone: form.phone,
+          dob: form.dob,
+          specialty: form.specialty,
+          age: form.age,
+          gender: form.gender
         }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Registration failed');
 
-      navigate('/login', {
-        state: {
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      navigate('/login', { 
+        state: { 
           registrationSuccess: true,
           email: form.email,
-          role: 'patient'
-        }
+          role: 'doctor'
+        } 
       });
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -88,17 +116,16 @@ function PatientRegister() {
         {/* Illustration Side */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-900 to-blue-700 text-white p-8 rounded-2xl shadow-md">
           <h1 className="text-3xl font-bold mb-3 text-pink-400">Hello<span className="text-white">Doc</span></h1>
-          <img src="/login-illustration.png" alt="Patient" className="w-56 h-auto mb-4" />
-          <p className="text-base font-semibold text-center mb-1">Welcome, Patient!</p>
+          <img src="/login-illustration.png" alt="Doctor" className="w-56 h-auto mb-4" />
+          <p className="text-base font-semibold text-center mb-1">Welcome, Doctor!</p>
           <p className="text-xs text-center max-w-md">
-            Access virtual care, book appointments, and connect with your doctor securely on HelloDoc.
+            Sign up to manage appointments, consult patients, and deliver quality care on HelloDoc.
           </p>
         </div>
 
         {/* Form Side */}
         <div className="bg-white p-6 shadow-md rounded-xl">
-
-          {/* Back to Home Link */}
+          {/* Home Link */}
           <div className="mb-2">
             <Link to="/" className="text-blue-600 text-xs underline hover:text-blue-800">
               ← Back to Home
@@ -107,12 +134,12 @@ function PatientRegister() {
 
           <div className="flex justify-center mb-4">
             <div className="inline-flex rounded-full border border-gray-300 overflow-hidden">
-              <span className="px-3 py-1 text-xs font-medium bg-blue-800 text-white">Patient</span>
-              <a href="/doctorregister" className="px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Doctor</a>
+              <a href="/patientregister" className="px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Patient</a>
+              <span className="px-3 py-1 text-xs font-medium bg-blue-800 text-white">Doctor</span>
             </div>
           </div>
 
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Create Your Patient Account</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Create Your Doctor Account</h2>
 
           {error && (
             <div className="mb-3 p-2 bg-red-100 text-red-700 rounded-md text-xs">
@@ -124,75 +151,91 @@ function PatientRegister() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  required
+                <input 
+                  type="text" 
+                  name="fullName" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.fullName} 
+                  onChange={handleChange} 
+                  required 
                 />
               </div>
-
+              
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
+                <input 
+                  type="email" 
+                  name="email" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.email} 
+                  onChange={handleChange} 
+                  required 
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  value={form.phone}
-                  onChange={handleChange}
-                  required
+                <input 
+                  type="tel" 
+                  name="phone" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.phone} 
+                  onChange={handleChange} 
+                  required 
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Date of Birth</label>
-                <input
-                  type="date"
-                  name="dob"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  value={form.dob}
-                  onChange={handleChange}
-                  required
+                <input 
+                  type="date" 
+                  name="dob" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.dob} 
+                  onChange={handleChange} 
+                  required 
                 />
               </div>
 
               <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Specialty</label>
+                <select 
+                  name="specialty" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.specialty} 
+                  onChange={handleChange} 
+                  required
+                >
+                  <option value="">Select Specialty</option>
+                  {specialties.map((spec) => (
+                    <option key={spec} value={spec}>{spec}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Age</label>
-                <select
-                  name="age"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  value={form.age}
-                  onChange={handleChange}
+                <select 
+                  name="age" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.age} 
+                  onChange={handleChange} 
                   required
                 >
                   <option value="">Select Age</option>
-                  {Array.from({ length: 83 }, (_, i) => (
-                    <option key={i} value={i + 18}>{i + 18}</option>
+                  {Array.from({ length: 50 }, (_, i) => (
+                    <option key={i} value={i + 25}>{i + 25}</option>
                   ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Gender</label>
-                <select
-                  name="gender"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  value={form.gender}
-                  onChange={handleChange}
+                <select 
+                  name="gender" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
+                  value={form.gender} 
+                  onChange={handleChange} 
                   required
                 >
                   <option value="">Select Gender</option>
@@ -205,18 +248,18 @@ function PatientRegister() {
 
               <div className="relative">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs pr-6"
-                  value={form.password}
-                  onChange={handleChange}
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  name="password" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs pr-6" 
+                  value={form.password} 
+                  onChange={handleChange} 
                   minLength={6}
-                  required
+                  required 
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)} 
                   className="absolute right-1 bottom-1 text-xs text-blue-600 px-1"
                 >
                   {showPassword ? 'Hide' : 'Show'}
@@ -225,17 +268,17 @@ function PatientRegister() {
 
               <div className="relative">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password</label>
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs pr-6"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  required
+                <input 
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                  name="confirmPassword" 
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs pr-6" 
+                  value={form.confirmPassword} 
+                  onChange={handleChange} 
+                  required 
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                <button 
+                  type="button" 
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
                   className="absolute right-1 bottom-1 text-xs text-blue-600 px-1"
                 >
                   {showConfirmPassword ? 'Hide' : 'Show'}
@@ -244,7 +287,7 @@ function PatientRegister() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Security Question</label>
-                <select
+                <select 
                   value={securityQuestion}
                   onChange={(e) => setSecurityQuestion(e.target.value)}
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
@@ -258,8 +301,8 @@ function PatientRegister() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Security Answer</label>
-                <input
-                  type="text"
+                <input 
+                  type="text" 
                   value={securityAnswer}
                   onChange={(e) => setSecurityAnswer(e.target.value)}
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
@@ -280,8 +323,8 @@ function PatientRegister() {
               </label>
             </div>
 
-            <button
-              type="submit"
+            <button 
+              type="submit" 
               className={`w-full bg-blue-800 text-white py-1.5 rounded hover:bg-blue-900 transition flex justify-center items-center text-xs ${isLoading ? 'opacity-75' : ''}`}
               disabled={isLoading}
             >
@@ -289,7 +332,7 @@ function PatientRegister() {
                 <>
                   <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   Registering...
                 </>
@@ -306,4 +349,4 @@ function PatientRegister() {
   );
 }
 
-export default PatientRegister;
+export default DoctorRegister;
