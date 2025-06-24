@@ -20,7 +20,8 @@ jobs:
           --health-retries=5
 
     env:
-      MONGODB_URI: mongodb://localhost:27017/hellodoc-test
+      MONGODB_URI: ${{vars.MONGODB_URI_TEST}}
+      JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
 
     steps:
       - uses: actions/checkout@v3
