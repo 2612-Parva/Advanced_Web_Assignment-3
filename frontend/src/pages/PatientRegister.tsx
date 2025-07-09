@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+
+// Redux imports
+import { useAppDispatch } from '../redux/hooks';
+import { registerSuccess } from '../redux/userSlice'; // adjust if action name/path differ
 
 function PatientRegister() {
   const [form, setForm] = useState({
@@ -20,6 +24,7 @@ function PatientRegister() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const securityQuestions = [
     "What city were you born in?",
@@ -65,6 +70,14 @@ function PatientRegister() {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Registration failed');
+
+      // Dispatch redux action for registration success (optional, adjust as needed)
+      dispatch(registerSuccess({
+        id: data.user._id || '',
+        name: data.user.fullName || '',
+        email: data.user.email || '',
+        role: data.user.role || 'patient',
+      }));
 
       navigate('/login', {
         state: {
@@ -298,7 +311,7 @@ function PatientRegister() {
           </form>
 
           <p className="text-xs text-center mt-3 text-gray-600">
-            Already have an account? <a href="/login" className="text-blue-600 hover:underline">Login</a>
+            Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
           </p>
         </div>
       </div>

@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
+import { useAppDispatch } from '../redux/hooks';
+import { loginSuccess } from '../redux/userSlice';
+
+
 function DoctorRegister() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -20,7 +27,6 @@ function DoctorRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const securityQuestions = [
     "What city were you born in?",
@@ -92,6 +98,14 @@ function DoctorRegister() {
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
       }
+
+      // Dispatch Redux action on success (adjust keys as per your API response)
+      dispatch(loginSuccess({
+        id: data.userId || '',  // or data.id or whatever your backend returns
+        name: form.fullName,
+        email: form.email,
+        role: 'doctor'
+      }));
 
       navigate('/login', { 
         state: { 

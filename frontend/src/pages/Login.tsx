@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+
+import { useAppDispatch } from '../redux/hooks';
+import { loginSuccess } from '../redux/userSlice';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -9,6 +12,7 @@ function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +34,19 @@ function Login() {
         throw new Error(data.message || 'Login failed');
       }
 
+      // Save token and user info locally
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
+      // Dispatch login success to Redux store
+      dispatch(loginSuccess({
+        id: data.user._id || '',
+        name: data.user.fullName || '',
+        email: data.user.email || '',
+        role: data.user.role || '',
+      }));
+
+      // Navigate based on user role
       switch (data.user.role) {
         case 'doctor':
           navigate('/doctor/dashboard');
