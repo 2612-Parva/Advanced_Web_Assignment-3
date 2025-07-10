@@ -33,11 +33,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
   }
-});
+}, { strict: true });
 
 userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {

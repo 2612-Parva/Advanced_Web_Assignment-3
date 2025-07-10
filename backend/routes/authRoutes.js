@@ -1,24 +1,14 @@
 const express = require('express');
-const { registerUser, loginUser, getAllUsers } = require('../controllers/authController');
-const verifyToken = require('../middleware/authmiddleware/Jwt');
-const checkRole = require('../middleware/authmiddleware/role');
+const { verifyToken, verifyPendingToken } = require('../middleware/authmiddleware/Jwt');
+const { registerUser,  loginStepOne, loginStepTwo, verifyEmail, refreshAccessToken, logout } = require('../controllers/authController');
+const { sendVerificationCode } = require('../services/emailServices');
 const router = express.Router();
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/users', verifyToken, checkRole('admin'), getAllUsers);
-router.get('/dashboard', verifyToken, checkRole('doctor', 'admin'), (req, res) => {
-  res.json({ message: 'Dashboard visible to doctors and admins only' });
-});
-
-router.get('/ping', (req, res) => {
-  res.json({ message: 'Ping GET success' });
-});
-router.get('/protected', verifyToken, (req, res) => {
-  res.json({
-    message: 'This is a protected route',
-    user: req.user
-  });
-});
+router.post('/register', registerUser(sendVerificationCode));
+router.post('/login', loginStepOne);
+router.post('/login/verify',    verifyPendingToken, loginStepTwo);
+router.get('/verify-email', verifyEmail)
+router.post('/refresh-token', refreshAccessToken)
+router.post('/logout', logout)
 
 module.exports = router;
