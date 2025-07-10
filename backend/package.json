@@ -15,17 +15,24 @@
   "main": "server.js",
   "scripts": {
     "test": "jest",
-    "start": "node server.js"
+    "start": "node server.js",
+    "start:dev": "nodemon --legacy-watch server.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-mongo-sanitize": "^2.2.0",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mailer": "^0.6.6",
     "mongoose": "^8.15.2",
-    "nodemon": "^3.1.10"
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.1.10",
+    "xss-clean": "^0.1.4"
   },
   "directories": {
     "test": "tests"
