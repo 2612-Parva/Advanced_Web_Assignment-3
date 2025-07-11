@@ -73,7 +73,7 @@ const PatientProfile: React.FC = () => {
             </div>
           </div>
 
-          {/* Tabs */}
+          
           <div className="flex gap-4 border-b mt-4 pt-2 text-sm font-medium text-gray-500">
             {['Overview', 'Appointment History', 'Medical Record', 'Medication'].map((item) => (
               <button
@@ -89,6 +89,7 @@ const PatientProfile: React.FC = () => {
           {/* Overview Section */}
           {tab === 'Overview' && (
             <div className="mt-4 space-y-4">
+              
               {/* Vitals */}
               <div className="border p-4 rounded-xl">
                 <h4 className="text-sm font-semibold text-gray-600 mb-2">Vitals</h4>
