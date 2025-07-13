@@ -4,10 +4,20 @@ import Sidebar from "../components/Patient/LeftSidebar";
 import TopNavBar from "../components/Patient/TopNavbar";
 import { usePlaceAutocomplete } from "../hooks/usePlaceAutocomplete";
 
+interface AppointmentForm {
+  firstName: string;
+  lastName: string;
+  postalCode: string;
+  address: string;
+  date: string;
+  healthCard: string;
+  description: string;
+}
+
 const AppointmentBooking: React.FC = () => {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AppointmentForm>({
     firstName: "",
     lastName: "",
     postalCode: "",
@@ -21,7 +31,10 @@ const AppointmentBooking: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleClear = () => {
@@ -42,7 +55,6 @@ const AppointmentBooking: React.FC = () => {
     navigate("/select-doctor");
   };
 
-  // 🔄 Setup Google Maps Autocomplete on address input
   usePlaceAutocomplete("autocomplete-address", (selectedAddress) => {
     setForm((prev) => ({ ...prev, address: selectedAddress }));
   });
@@ -68,18 +80,23 @@ const AppointmentBooking: React.FC = () => {
 
             <div className="bg-white p-6 rounded-lg border shadow-sm">
               <form onSubmit={handleSubmit} className="space-y-2">
-                {[
-                  { label: "First Name", name: "firstName" },
-                  { label: "Last Name", name: "lastName" },
-                  { label: "Health Card Number", name: "healthCard" },
-                  { label: "Description for appointment", name: "description" },
-                ].map(({ label, name }) => (
+                {(
+                  [
+                    { label: "First Name", name: "firstName" },
+                    { label: "Last Name", name: "lastName" },
+                    { label: "Health Card Number", name: "healthCard" },
+                    {
+                      label: "Description for appointment",
+                      name: "description",
+                    },
+                  ] as const
+                ).map(({ label, name }) => (
                   <div key={name}>
                     <label className="block text-sm mb-1">{label}</label>
                     <input
                       name={name}
                       type="text"
-                      value={(form as any)[name]}
+                      value={form[name]}
                       onChange={handleChange}
                       placeholder="Type here"
                       className="w-full border rounded px-3 py-2 text-sm"

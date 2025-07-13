@@ -1,14 +1,17 @@
-declare global {
-  interface Window {
-    google: any;
-  }
-}
+/// <reference types="@types/google.maps" />
 
 import { useEffect } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 
+// Extend global window with accurate type
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 const loader = new Loader({
-  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // ✅ pulled from .env
+  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   libraries: ["places"],
 });
 
