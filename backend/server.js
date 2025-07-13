@@ -41,6 +41,9 @@ app.use('/api/auth', authRoutes);
 const appointmentRoutes = require('./routes/appointmentRoutes');
 app.use('/api/appointments', appointmentRoutes);
 
+const doctorRoutes = require('./routes/doctorRoutes');
+app.use('/api/doctors', doctorRoutes);
+
 app.get('/', (req, res) => {
   res.send('HelloDoc Backend API');
 });
