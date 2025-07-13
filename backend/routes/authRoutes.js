@@ -1,5 +1,5 @@
 const express = require('express');
-const { verifyToken, verifyPendingToken } = require('../middleware/authmiddleware/Jwt');
+const { verifyPendingToken } = require('../middleware/authmiddleware/Jwt');
 const { registerUser,  loginStepOne, loginStepTwo, verifyEmail, refreshAccessToken, logout } = require('../controllers/authController');
 const { sendVerificationCode } = require('../services/emailServices');
 const router = express.Router();
