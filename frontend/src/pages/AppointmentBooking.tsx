@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Patient/LeftSidebar";
 import TopNavBar from "../components/Patient/TopNavbar";
+import { usePlaceAutocomplete } from "../hooks/usePlaceAutocomplete";
 
 const AppointmentBooking: React.FC = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const AppointmentBooking: React.FC = () => {
     firstName: "",
     lastName: "",
     postalCode: "",
-    address: "Auto fill",
+    address: "",
     date: "",
     healthCard: "",
     description: "",
@@ -28,7 +29,7 @@ const AppointmentBooking: React.FC = () => {
       firstName: "",
       lastName: "",
       postalCode: "",
-      address: "Auto fill",
+      address: "",
       date: "",
       healthCard: "",
       description: "",
@@ -40,6 +41,11 @@ const AppointmentBooking: React.FC = () => {
     localStorage.setItem("appointmentForm", JSON.stringify(form));
     navigate("/select-doctor");
   };
+
+  // 🔄 Setup Google Maps Autocomplete on address input
+  usePlaceAutocomplete("autocomplete-address", (selectedAddress) => {
+    setForm((prev) => ({ ...prev, address: selectedAddress }));
+  });
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -99,11 +105,13 @@ const AppointmentBooking: React.FC = () => {
                 <div>
                   <label className="block text-sm mb-1">Address</label>
                   <input
-                    type="text"
+                    id="autocomplete-address"
                     name="address"
+                    type="text"
                     value={form.address}
-                    disabled
-                    className="w-full border rounded px-3 py-2 text-sm bg-gray-100"
+                    onChange={handleChange}
+                    placeholder="Start typing your address..."
+                    className="w-full border rounded px-3 py-2 text-sm"
                   />
                 </div>
 
