@@ -1,128 +1,169 @@
 import React, { useState } from 'react';
+import { Mail, Phone, Edit3, Save, X, MapPin } from 'lucide-react';
+import TopNavBar from '../components/Patient/TopNavbar';
+import LeftSidebar from '../components/Patient/LeftSidebar';
 
 const PatientProfile: React.FC = () => {
-  const [tab, setTab] = useState('Overview');
+  const [isEditing, setIsEditing] = useState(false);
 
-  const patient = {
-    name: 'Marvin McKinney',
+  const [patient, setPatient] = useState({
+    name: 'Alan Levis',
     gender: 'Male',
     age: 32,
-    condition: 'Brain, Spinal Cord, and Nerve Disorders',
-    email: 'marmckinder@gmail.com',
+    email: 'Alenlevis@gmail.com',
     phone: '+880 17252412323',
-    image: 'https://randomuser.me/api/portraits/men/32.jpg'
+    image: 'https://ui-avatars.com/api/?name=Alan',
+    address: '123 Medical Plaza, India'
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setPatient((prev) => ({ ...prev, [name]: value }));
   };
 
-  const vitals = {
-    glucose: '120 mg/dt',
-    weight: '55 Kg',
-    heartRate: '70 bpm',
-    oxygen: '71%',
-    temperature: '98.1 F',
-    bp: '120/80 mm hg'
+  const handleSave = () => {
+    setIsEditing(false);
+    alert('Profile updated successfully.');
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-16 bg-blue-600 text-white flex flex-col items-center py-6 space-y-6">
-        <i className="fas fa-table-cells-large" />
-        <i className="fas fa-calendar-check" />
-        <i className="fas fa-user-md" />
-        <i className="fas fa-notes-medical" />
-        <i className="fas fa-gear" />
-      </aside>
+      <div className="w-[80px] bg-blue-600 text-white">
+        <LeftSidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 bg-white p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
-            <select className="bg-white border px-3 py-1 rounded shadow-sm">
-              <option>Alan Murphy</option>
-              <option>Jessica Lee</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button className="bg-blue-600 text-white px-4 py-1 rounded">+ Add Patient</button>
-            <button className="border px-3 py-1 rounded">Filter</button>
-            <div className="flex items-center gap-2">
-              <img src="https://randomuser.me/api/portraits/men/5.jpg" className="w-8 h-8 rounded-full" />
-              <span className="text-sm">Dr. Kim</span>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col bg-gray-50">
+        {/* Top Navbar */}
+        <div className="w-full border-b shadow-sm bg-white">
+          <TopNavBar />
         </div>
 
-        {/* Patient Info Card */}
-        <div className="border rounded-xl p-4 shadow-sm mb-4">
-          <div className="flex justify-between items-start">
-            <div className="flex gap-4">
-              <img src={patient.image} className="w-16 h-16 rounded-full" />
-              <div>
-                <h3 className="text-lg font-semibold">{patient.name}</h3>
-                <p className="text-sm text-gray-500">{`${patient.gender} · Age ${patient.age}`}</p>
-                <p className="text-sm text-gray-600">{patient.condition}</p>
-                <p className="text-sm text-gray-600">{patient.email}</p>
-                <p className="text-sm text-gray-600">{patient.phone}</p>
+        {/* Profile Content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={patient.image}
+                    alt="Patient"
+                    className="w-16 h-16 rounded-full object-cover shadow-sm"
+                  />
+                  <div>
+                    {isEditing ? (
+                      <>
+                        <input
+                          name="name"
+                          value={patient.name}
+                          onChange={handleChange}
+                          className="text-xl font-bold border rounded px-3 py-2 w-full mb-2"
+                          placeholder="Full Name"
+                        />
+                        <div className="flex gap-2">
+                          <select
+                            name="gender"
+                            value={patient.gender}
+                            onChange={handleChange}
+                            className="border rounded px-3 py-2"
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                          <input
+                            name="age"
+                            type="number"
+                            value={patient.age}
+                            onChange={handleChange}
+                            className="border rounded px-3 py-2"
+                            placeholder="Age"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="text-xl font-bold">{patient.name}</h2>
+                        <p className="text-gray-500">{patient.gender} • {patient.age} years old</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded text-sm font-medium transition ${
+                    isEditing
+                      ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                      : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                  }`}
+                >
+                  {isEditing ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                  <span>{isEditing ? 'Cancel' : 'Edit'}</span>
+                </button>
               </div>
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <button className="text-blue-600 border px-3 py-1 rounded text-sm">Edit</button>
-              <button className="text-red-500 bg-red-100 px-3 py-1 rounded text-sm">Remove Patient</button>
+
+              {/* Contact Details */}
+              <div className="space-y-4 mt-4">
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    {isEditing ? (
+                      <input
+                        name="email"
+                        value={patient.email}
+                        onChange={handleChange}
+                        className="flex-1 border rounded px-3 py-2"
+                      />
+                    ) : (
+                      <span className="text-gray-700">{patient.email}</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    {isEditing ? (
+                      <input
+                        name="phone"
+                        value={patient.phone}
+                        onChange={handleChange}
+                        className="flex-1 border rounded px-3 py-2"
+                      />
+                    ) : (
+                      <span className="text-gray-700">{patient.phone}</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                    {isEditing ? (
+                      <input
+                        name="address"
+                        value={patient.address}
+                        onChange={handleChange}
+                        className="flex-1 border rounded px-3 py-2"
+                      />
+                    ) : (
+                      <span className="text-gray-700">{patient.address}</span>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <button
+                    onClick={handleSave}
+                    className="w-full mt-4 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition"
+                  >
+                    <Save className="w-4 h-4 inline-block mr-2" />
+                    Save Changes
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-
-          
-          <div className="flex gap-4 border-b mt-4 pt-2 text-sm font-medium text-gray-500">
-            {['Overview', 'Appointment History', 'Medical Record', 'Medication'].map((item) => (
-              <button
-                key={item}
-                onClick={() => setTab(item)}
-                className={`pb-2 ${tab === item ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          {/* Overview Section */}
-          {tab === 'Overview' && (
-            <div className="mt-4 space-y-4">
-              
-              {/* Vitals */}
-              <div className="border p-4 rounded-xl">
-                <h4 className="text-sm font-semibold text-gray-600 mb-2">Vitals</h4>
-                <div className="grid grid-cols-3 gap-3 text-sm">
-                  <div>{vitals.glucose}<br /><span className="text-gray-500">Blood glucose level</span></div>
-                  <div>{vitals.weight}<br /><span className="text-gray-500">Weight</span></div>
-                  <div>{vitals.heartRate}<br /><span className="text-gray-500">Heart rate</span></div>
-                  <div>{vitals.oxygen}<br /><span className="text-gray-500">Oxygen saturation</span></div>
-                  <div>{vitals.temperature}<br /><span className="text-gray-500">Body temperature</span></div>
-                  <div>{vitals.bp}<br /><span className="text-gray-500">Blood pressure</span></div>
-                </div>
-              </div>
-
-              {/* Medications */}
-              <div className="border p-4 rounded-xl">
-                <h4 className="text-sm font-semibold text-gray-600 mb-2">Medications</h4>
-                <div className="text-sm">
-                  <p><strong>Ursofalk 300</strong> – Routine Medicine <br /><span className="text-gray-500">2 Pills · 02:00 PM · No observations</span></p>
-                  <p className="mt-3"><strong>Indever 20</strong> – Emergency <br /><span className="text-gray-500">1 Pill · 02:20 PM · Given for seizures</span></p>
-                </div>
-              </div>
-
-              {/* Test Reports */}
-              <div className="border p-4 rounded-xl">
-                <h4 className="text-sm font-semibold text-gray-600 mb-2">Test Reports</h4>
-                <div className="text-sm">
-                  <p><strong>UV Invasive Ultrasound</strong> – Nerve Disorder<br /><span className="text-gray-500">A small nerve in the left-mid neck section is swollen. Brain scan suggested.</span></p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

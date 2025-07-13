@@ -14,7 +14,7 @@ const navItems = [
   { label: 'Appointments', icon: <Calendar />, to: '/appointments' },
   { label: 'Chat', icon: <MessageCircle />, to: '/consultations' },
   { label: 'appointment-booking', icon: <BookOpen />, to: '/book-appointment' },
-  { label: 'Settings', icon: <Settings />, to: '/settings' },
+  { label: 'Settings', icon: <Settings />, to: '/patient-profile' },
 ];
 
 const LeftSidebar: React.FC = () => {
