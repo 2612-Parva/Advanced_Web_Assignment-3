@@ -1,4 +1,3 @@
-
 const jwt = require('jsonwebtoken');
 const bcrypt   = require('bcryptjs');
 const { registerUser,
@@ -17,6 +16,14 @@ const {
   verifySecondFactorToken
 } = require('../services/authServices');
 const { responseBody }  = require('../config/responseBody');
+
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.error.mockRestore();
+});
 
 function mockReq(body = {}, query = {}, userId) {
   return {

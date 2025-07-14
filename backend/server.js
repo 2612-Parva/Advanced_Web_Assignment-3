@@ -38,6 +38,9 @@ app.use(xssClean());
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
+const appointmentRoutes = require('./routes/appointmentRoutes');
+app.use('/api/appointments', appointmentRoutes);
+
 const patientRoutes = require('./routes/patientRoutes');
 app.use('/api/patient', patientRoutes);
 
