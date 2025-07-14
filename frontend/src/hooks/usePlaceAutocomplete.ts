@@ -6,9 +6,10 @@ import { Loader } from "@googlemaps/js-api-loader";
 // Extend global window with accurate type
 declare global {
   interface Window {
-    google: typeof google;
+    google: typeof globalThis.google;
   }
 }
+
 
 const loader = new Loader({
   apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
