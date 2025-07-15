@@ -16,7 +16,7 @@ export const store = configureStore({
         ignoredPaths: ['auth.refreshToken', 'auth.accessToken'],
       },
     }),
-  devTools: process.env.NODE_ENV !== 'production', 
+  devTools: import.meta.env.MODE !== 'production', 
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -134,7 +134,6 @@ function DoctorRegister() {
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Illustration Side */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-900 to-blue-700 text-white p-8 rounded-2xl shadow-md">
           <h1 className="text-3xl font-bold mb-3 text-pink-400">Hello<span className="text-white">Doc</span></h1>
           <img src="/login-illustration.png" alt="Doctor" className="w-56 h-auto mb-4" />
@@ -144,9 +143,7 @@ function DoctorRegister() {
           </p>
         </div>
 
-        {/* Form Side */}
         <div className="bg-white p-6 shadow-md rounded-xl">
-          {/* Home Link */}
           <div className="mb-2">
             <Link to="/" className="text-blue-600 text-xs underline hover:text-blue-800">
               ← Back to Home
