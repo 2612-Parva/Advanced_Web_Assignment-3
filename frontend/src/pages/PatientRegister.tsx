@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-
-// Redux imports
 import { useAppDispatch } from '../redux/hooks';
-import { registerSuccess } from '../redux/userSlice'; // adjust if action name/path differ
+import { registerSuccess } from '../redux/userSlice';
 
 function PatientRegister() {
   const [form, setForm] = useState({
@@ -44,6 +42,7 @@ function PatientRegister() {
     setIsLoading(true);
     setError('');
 
+    // Frontend validation
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -51,39 +50,60 @@ function PatientRegister() {
     }
 
     if (parseInt(form.age) < 18) {
-      setError('You must be at least 18 years old to register as a patient');
+      setError('You must be at least 18 years old to register');
+      setIsLoading(false);
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters');
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5050/api/auth/register', {
+      const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          ...form,
+          fullName: form.fullName,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+          dob: form.dob,
+          age: form.age,
+          gender: form.gender,
           role: 'patient',
           securityQuestion,
           securityAnswer
         }),
+        credentials: 'same-origin' 
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Registration failed');
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
 
-      // Dispatch redux action for registration success (optional, adjust as needed)
+      if (!data.user || !data.user._id) {
+        throw new Error('Invalid user data received from server');
+      }
+
       dispatch(registerSuccess({
-        id: data.user._id || '',
-        name: data.user.fullName || '',
-        email: data.user.email || '',
-        role: data.user.role || 'patient',
+        id: data.user._id,
+        name: data.user.fullName,
+        email: data.user.email,
+        role: data.user.role,
+        isVerified: data.user.emailVerified || false,
       }));
 
-      navigate('/login', {
+      navigate('/verify-email', {
         state: {
-          registrationSuccess: true,
           email: form.email,
-          role: 'patient'
+          userId: data.user._id 
         }
       });
 
@@ -97,7 +117,6 @@ function PatientRegister() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-
         {/* Illustration Side */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-900 to-blue-700 text-white p-8 rounded-2xl shadow-md">
           <h1 className="text-3xl font-bold mb-3 text-pink-400">Hello<span className="text-white">Doc</span></h1>
@@ -110,7 +129,6 @@ function PatientRegister() {
 
         {/* Form Side */}
         <div className="bg-white p-6 shadow-md rounded-xl">
-
           {/* Back to Home Link */}
           <div className="mb-2">
             <Link to="/" className="text-blue-600 text-xs underline hover:text-blue-800">
@@ -136,7 +154,7 @@ function PatientRegister() {
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name*</label>
                 <input
                   type="text"
                   name="fullName"
@@ -148,7 +166,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Email*</label>
                 <input
                   type="email"
                   name="email"
@@ -160,7 +178,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Phone</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Phone*</label>
                 <input
                   type="tel"
                   name="phone"
@@ -172,7 +190,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Date of Birth</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Date of Birth*</label>
                 <input
                   type="date"
                   name="dob"
@@ -184,7 +202,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Age</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Age*</label>
                 <select
                   name="age"
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
@@ -200,7 +218,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Gender</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Gender*</label>
                 <select
                   name="gender"
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
@@ -217,7 +235,7 @@ function PatientRegister() {
               </div>
 
               <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Password* (min 6 chars)</label>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
@@ -237,7 +255,7 @@ function PatientRegister() {
               </div>
 
               <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password*</label>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
@@ -256,7 +274,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Security Question</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Security Question*</label>
                 <select
                   value={securityQuestion}
                   onChange={(e) => setSecurityQuestion(e.target.value)}
@@ -270,7 +288,7 @@ function PatientRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Security Answer</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Security Answer*</label>
                 <input
                   type="text"
                   value={securityAnswer}
