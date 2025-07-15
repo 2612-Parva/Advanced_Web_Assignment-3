@@ -7,7 +7,6 @@ import ServicesSection from '../components/ServicesSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import Footer from '../components/Footer';
 
-// Redux imports
 import { useAppSelector} from '../redux/hooks';
 
 const Home: React.FC = () => {
