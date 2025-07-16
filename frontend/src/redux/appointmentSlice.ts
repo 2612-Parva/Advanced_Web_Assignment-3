@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { type RootState } from './store';
 
 interface Appointment {
   _id: string;
@@ -26,7 +25,6 @@ const initialState: AppointmentState = {
   error: null,
 };
 
-// Helper function for API requests
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('accessToken');
   const headers = {
@@ -278,9 +276,9 @@ const appointmentSlice = createSlice({
 
 export const { clearSelectedAppointment } = appointmentSlice.actions;
 
-export const selectAppointments = (state: RootState) => state.appointment.appointments;
-export const selectSelectedAppointment = (state: RootState) => state.appointment.selectedAppointment;
-export const selectAppointmentLoading = (state: RootState) => state.appointment.loading;
-export const selectAppointmentError = (state: RootState) => state.appointment.error;
+export const selectAppointments = (state: { appointment: AppointmentState }) => state.appointment.appointments;
+export const selectSelectedAppointment = (state: { appointment: AppointmentState }) => state.appointment.selectedAppointment;
+export const selectAppointmentLoading = (state: { appointment: AppointmentState }) => state.appointment.loading;
+export const selectAppointmentError = (state: { appointment: AppointmentState }) => state.appointment.error;
 
 export default appointmentSlice.reducer;
