@@ -3,17 +3,11 @@ const { Schema } = mongoose;
 
 const doctorSchema = new Schema({
   doctorId: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true,
     validate: {
-      validator: async function (userId) {
+      validator: async function(userId) {
         const user = await mongoose.model('User').findById(userId);
         return user && user.role === 'doctor';
       },
