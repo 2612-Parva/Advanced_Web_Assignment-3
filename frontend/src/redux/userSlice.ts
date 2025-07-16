@@ -24,7 +24,7 @@ interface VerificationResponse {
 }
 
 interface UserState {
-  profile: any;
+  profile: UserProfile | undefined;
   userId: string | undefined;
   role: 'patient' | 'doctor' | 'admin' | undefined;
   currentUser: User | null;
@@ -48,7 +48,7 @@ export const checkVerificationStatus = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetch('/api/auth/verify-status', {
-        credentials: 'include'
+        credentials: 'same-origin',
       });
       
       if (!response.ok) {
