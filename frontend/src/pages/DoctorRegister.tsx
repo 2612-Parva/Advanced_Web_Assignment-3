@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAppDispatch } from '../redux/hooks';
+import { loginSuccess } from '../redux/userSlice';
 
 function DoctorRegister() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -20,7 +25,6 @@ function DoctorRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const securityQuestions = [
     "What city were you born in?",
@@ -54,6 +58,7 @@ function DoctorRegister() {
     setIsLoading(true);
     setError('');
 
+    // Frontend validation
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -66,8 +71,14 @@ function DoctorRegister() {
       return;
     }
 
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,6 +104,16 @@ function DoctorRegister() {
         throw new Error(data.message || 'Registration failed');
       }
 
+      const userData = data.body;
+
+      dispatch(loginSuccess({
+        id: userData.ID,
+        name: userData.fullName,
+        email: userData.email,
+        role: userData.role,
+        isVerified: false 
+      }));
+
       navigate('/login', { 
         state: { 
           registrationSuccess: true,
@@ -113,7 +134,6 @@ function DoctorRegister() {
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Illustration Side */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-900 to-blue-700 text-white p-8 rounded-2xl shadow-md">
           <h1 className="text-3xl font-bold mb-3 text-pink-400">Hello<span className="text-white">Doc</span></h1>
           <img src="/login-illustration.png" alt="Doctor" className="w-56 h-auto mb-4" />
@@ -123,9 +143,7 @@ function DoctorRegister() {
           </p>
         </div>
 
-        {/* Form Side */}
         <div className="bg-white p-6 shadow-md rounded-xl">
-          {/* Home Link */}
           <div className="mb-2">
             <Link to="/" className="text-blue-600 text-xs underline hover:text-blue-800">
               ← Back to Home
@@ -134,7 +152,7 @@ function DoctorRegister() {
 
           <div className="flex justify-center mb-4">
             <div className="inline-flex rounded-full border border-gray-300 overflow-hidden">
-              <a href="/patientregister" className="px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Patient</a>
+              <Link to="/patientregister" className="px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Patient</Link>
               <span className="px-3 py-1 text-xs font-medium bg-blue-800 text-white">Doctor</span>
             </div>
           </div>
@@ -150,7 +168,7 @@ function DoctorRegister() {
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name*</label>
                 <input 
                   type="text" 
                   name="fullName" 
@@ -162,7 +180,7 @@ function DoctorRegister() {
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Email*</label>
                 <input 
                   type="email" 
                   name="email" 
@@ -174,7 +192,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Phone</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Phone*</label>
                 <input 
                   type="tel" 
                   name="phone" 
@@ -186,7 +204,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Date of Birth</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Date of Birth*</label>
                 <input 
                   type="date" 
                   name="dob" 
@@ -198,7 +216,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Specialty</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Specialty*</label>
                 <select 
                   name="specialty" 
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
@@ -214,7 +232,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Age</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Age*</label>
                 <select 
                   name="age" 
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
@@ -230,7 +248,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Gender</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Gender*</label>
                 <select 
                   name="gender" 
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs" 
@@ -247,7 +265,7 @@ function DoctorRegister() {
               </div>
 
               <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Password* (min 6 chars)</label>
                 <input 
                   type={showPassword ? 'text' : 'password'} 
                   name="password" 
@@ -267,7 +285,7 @@ function DoctorRegister() {
               </div>
 
               <div className="relative">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password*</label>
                 <input 
                   type={showConfirmPassword ? 'text' : 'password'} 
                   name="confirmPassword" 
@@ -286,7 +304,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Security Question</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Security Question*</label>
                 <select 
                   value={securityQuestion}
                   onChange={(e) => setSecurityQuestion(e.target.value)}
@@ -300,7 +318,7 @@ function DoctorRegister() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Security Answer</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Security Answer*</label>
                 <input 
                   type="text" 
                   value={securityAnswer}
@@ -341,7 +359,7 @@ function DoctorRegister() {
           </form>
 
           <p className="text-xs text-center mt-3 text-gray-600">
-            Already have an account? <a href="/login" className="text-blue-600 hover:underline">Login</a>
+            Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
           </p>
         </div>
       </div>

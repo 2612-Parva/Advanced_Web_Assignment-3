@@ -13,6 +13,7 @@ import PatientProfile from './pages/PatientProfile'
 
 function App() {
   return (
+    <div data-testid="app-container">
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -25,6 +26,7 @@ function App() {
         <Route path="*" element={<Home/>} /> 
       </Routes>
     </Router>
+    </div>
   )
 }
 
