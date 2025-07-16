@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface Appointment {
   _id: string;
@@ -18,6 +18,11 @@ interface AppointmentState {
   error: string | null;
 }
 
+interface ApiResponse<T> {
+  body: T;
+  message?: string;
+}
+
 const initialState: AppointmentState = {
   appointments: [],
   selectedAppointment: null,
@@ -25,7 +30,7 @@ const initialState: AppointmentState = {
   error: null,
 };
 
-const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+const fetchWithAuth = async <T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> => {
   const token = localStorage.getItem('accessToken');
   const headers = {
     'Content-Type': 'application/json',
@@ -51,13 +56,16 @@ export const bookAppointment = createAsyncThunk(
   'appointment/book',
   async (appointmentData: { doctorId: string; scheduledFor: string; reason: string }, { rejectWithValue }) => {
     try {
-      const data = await fetchWithAuth('/appointments/book', {
+      const { body } = await fetchWithAuth<Appointment>('/appointments/book', {
         method: 'POST',
         body: JSON.stringify(appointmentData),
       });
-      return data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return body;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -66,10 +74,13 @@ export const getAppointments = createAsyncThunk(
   'appointment/getAll',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await fetchWithAuth('/appointments');
-      return data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      const { body } = await fetchWithAuth<Appointment[]>('/appointments');
+      return body;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -78,10 +89,13 @@ export const getAppointmentById = createAsyncThunk(
   'appointment/getById',
   async (appointmentId: string, { rejectWithValue }) => {
     try {
-      const data = await fetchWithAuth(`/appointments/${appointmentId}`);
-      return data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      const { body } = await fetchWithAuth<Appointment>(`/appointments/${appointmentId}`);
+      return body;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -90,12 +104,15 @@ export const cancelAppointment = createAsyncThunk(
   'appointment/cancel',
   async (appointmentId: string, { rejectWithValue }) => {
     try {
-      const data = await fetchWithAuth(`/appointments/cancel/${appointmentId}`, {
+      const { body } = await fetchWithAuth<Appointment>(`/appointments/cancel/${appointmentId}`, {
         method: 'PUT',
       });
-      return data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return body;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -104,13 +121,16 @@ export const rescheduleAppointment = createAsyncThunk(
   'appointment/reschedule',
   async ({ appointmentId, scheduledFor, reason }: { appointmentId: string; scheduledFor: string; reason?: string }, { rejectWithValue }) => {
     try {
-      const data = await fetchWithAuth(`/appointments/reschedule/${appointmentId}`, {
+      const { body } = await fetchWithAuth<Appointment>(`/appointments/reschedule/${appointmentId}`, {
         method: 'PUT',
         body: JSON.stringify({ scheduledFor, reason }),
       });
-      return data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return body;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -119,12 +139,15 @@ export const markAsNoShow = createAsyncThunk(
   'appointment/noShow',
   async (appointmentId: string, { rejectWithValue }) => {
     try {
-      const data = await fetchWithAuth(`/appointments/no-show/${appointmentId}`, {
+      const { body } = await fetchWithAuth<Appointment>(`/appointments/no-show/${appointmentId}`, {
         method: 'PUT',
       });
-      return data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return body;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -133,12 +156,15 @@ export const deleteAppointment = createAsyncThunk(
   'appointment/delete',
   async (appointmentId: string, { rejectWithValue }) => {
     try {
-      await fetchWithAuth(`/appointments/${appointmentId}`, {
+      await fetchWithAuth<void>(`/appointments/${appointmentId}`, {
         method: 'DELETE',
       });
       return appointmentId;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred');
     }
   }
 );
@@ -158,11 +184,11 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(bookAppointment.fulfilled, (state, action) => {
+      .addCase(bookAppointment.fulfilled, (state, action: PayloadAction<Appointment>) => {
         state.loading = false;
         state.appointments.push(action.payload);
       })
-      .addCase(bookAppointment.rejected, (state, action) => {
+      .addCase(bookAppointment.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -172,11 +198,11 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAppointments.fulfilled, (state, action) => {
+      .addCase(getAppointments.fulfilled, (state, action: PayloadAction<Appointment[]>) => {
         state.loading = false;
         state.appointments = action.payload;
       })
-      .addCase(getAppointments.rejected, (state, action) => {
+      .addCase(getAppointments.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -186,11 +212,11 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAppointmentById.fulfilled, (state, action) => {
+      .addCase(getAppointmentById.fulfilled, (state, action: PayloadAction<Appointment>) => {
         state.loading = false;
         state.selectedAppointment = action.payload;
       })
-      .addCase(getAppointmentById.rejected, (state, action) => {
+      .addCase(getAppointmentById.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -200,7 +226,7 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(cancelAppointment.fulfilled, (state, action) => {
+      .addCase(cancelAppointment.fulfilled, (state, action: PayloadAction<Appointment>) => {
         state.loading = false;
         const index = state.appointments.findIndex(a => a._id === action.payload._id);
         if (index !== -1) {
@@ -210,7 +236,7 @@ const appointmentSlice = createSlice({
           state.selectedAppointment = action.payload;
         }
       })
-      .addCase(cancelAppointment.rejected, (state, action) => {
+      .addCase(cancelAppointment.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -220,7 +246,7 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(rescheduleAppointment.fulfilled, (state, action) => {
+      .addCase(rescheduleAppointment.fulfilled, (state, action: PayloadAction<Appointment>) => {
         state.loading = false;
         const index = state.appointments.findIndex(a => a._id === action.payload._id);
         if (index !== -1) {
@@ -230,7 +256,7 @@ const appointmentSlice = createSlice({
           state.selectedAppointment = action.payload;
         }
       })
-      .addCase(rescheduleAppointment.rejected, (state, action) => {
+      .addCase(rescheduleAppointment.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -240,7 +266,7 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(markAsNoShow.fulfilled, (state, action) => {
+      .addCase(markAsNoShow.fulfilled, (state, action: PayloadAction<Appointment>) => {
         state.loading = false;
         const index = state.appointments.findIndex(a => a._id === action.payload._id);
         if (index !== -1) {
@@ -250,7 +276,7 @@ const appointmentSlice = createSlice({
           state.selectedAppointment = action.payload;
         }
       })
-      .addCase(markAsNoShow.rejected, (state, action) => {
+      .addCase(markAsNoShow.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -260,14 +286,14 @@ const appointmentSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteAppointment.fulfilled, (state, action) => {
+      .addCase(deleteAppointment.fulfilled, (state, action: PayloadAction<string>) => {
         state.loading = false;
         state.appointments = state.appointments.filter(a => a._id !== action.payload);
         if (state.selectedAppointment?._id === action.payload) {
           state.selectedAppointment = null;
         }
       })
-      .addCase(deleteAppointment.rejected, (state, action) => {
+      .addCase(deleteAppointment.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       });
