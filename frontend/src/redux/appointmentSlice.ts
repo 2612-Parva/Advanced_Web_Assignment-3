@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+declare type RequestInit = globalThis.RequestInit;
 
 interface Appointment {
   _id: string;
