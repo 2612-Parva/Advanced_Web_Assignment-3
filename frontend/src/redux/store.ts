@@ -1,14 +1,22 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authSlice'; 
-import appointmentReducer from './appointmentSlice'; 
-import userReducer from './userSlice'; 
+
+import authReducer from './authSlice';
+import userReducer from './userSlice';
+
+const initialReducers = {
+  auth: authReducer,
+  user: userReducer,
+  appointment: (state = {}) => state 
+};
+import appointmentReducer from './appointmentSlice';
+
+const finalReducers = {
+  ...initialReducers,
+  appointment: appointmentReducer 
+};
 
 export const store = configureStore({
-  reducer: {
-    auth: authReducer, 
-    appointment: appointmentReducer, 
-    user: userReducer, 
-  },
+  reducer: finalReducers,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -16,7 +24,7 @@ export const store = configureStore({
         ignoredPaths: ['auth.refreshToken', 'auth.accessToken'],
       },
     }),
-  devTools: import.meta.env.MODE !== 'production', 
+  devTools: import.meta.env.MODE !== 'production',
 });
 
 export type RootState = ReturnType<typeof store.getState>;
