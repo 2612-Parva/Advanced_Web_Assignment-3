@@ -1,12 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
+
+interface UserProfile {
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  address?: string;
+}
+
 interface User {
   id: string;
   email: string;
   name?: string;
   isVerified: boolean;
   role: 'patient' | 'doctor' | 'admin';
+  profile?: UserProfile;
 }
 
 interface VerificationResponse {
@@ -15,9 +24,9 @@ interface VerificationResponse {
 }
 
 interface UserState {
-  userId: any;
   profile: any;
-  role: any;
+  userId: string | undefined;
+  role: 'patient' | 'doctor' | 'admin' | undefined;
   currentUser: User | null;
   loading: boolean;
   error: string | null;
@@ -30,8 +39,8 @@ const initialState: UserState = {
   loading: false,
   error: null,
   verificationStatus: null,
-  profile: undefined,
-  role: undefined
+  role: undefined,
+  profile: undefined
 };
 
 export const checkVerificationStatus = createAsyncThunk(
@@ -50,9 +59,12 @@ export const checkVerificationStatus = createAsyncThunk(
       return {
         isVerified: data.isVerified,
         user: data.user 
-      } as VerificationResponse;
+      };
     } catch (error: unknown) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Unknown error occurred');
     }
   }
 );
@@ -67,7 +79,10 @@ export const verifyEmail = createAsyncThunk(
       }
       return { success: true };
     } catch (error: unknown) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Unknown error occurred');
     }
   }
 );
@@ -78,16 +93,30 @@ const userSlice = createSlice({
   reducers: {
     loginSuccess(state, action: PayloadAction<User>) {
       state.currentUser = action.payload;
+      state.userId = action.payload.id;
+      state.role = action.payload.role;
       state.verificationStatus = action.payload.isVerified ? 'verified' : 'unverified';
       state.error = null;
     },
     registerSuccess(state, action: PayloadAction<User>) {
       state.currentUser = action.payload;
+      state.userId = action.payload.id;
+      state.role = action.payload.role;
       state.verificationStatus = 'unverified';
       state.error = null;
     },
     clearUserError(state) {
       state.error = null;
+    },
+    updateUserProfile(state, action: PayloadAction<Partial<UserProfile>>) {
+      if (state.currentUser) {
+        state.currentUser.profile = {
+          ...state.currentUser.profile,
+          ...action.payload,
+          fullName: action.payload.fullName ?? state.currentUser.profile?.fullName ?? '',
+          email: action.payload.email ?? state.currentUser.profile?.email ?? ''
+        };
+      }
     }
   },
   extraReducers: (builder) => {
@@ -96,17 +125,22 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(checkVerificationStatus.fulfilled, (state, action: PayloadAction<VerificationResponse>) => {
+      .addCase(checkVerificationStatus.fulfilled, (
+        state, 
+        action: PayloadAction<VerificationResponse>
+      ) => {
         state.loading = false;
         state.verificationStatus = action.payload.isVerified ? 'verified' : 'unverified';
         
         if (action.payload.user) {
           state.currentUser = action.payload.user;
+          state.userId = action.payload.user.id;
+          state.role = action.payload.user.role;
         } else if (state.currentUser) {
           state.currentUser.isVerified = action.payload.isVerified;
         }
       })
-      .addCase(checkVerificationStatus.rejected, (state, action) => {
+      .addCase(checkVerificationStatus.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
         state.verificationStatus = null;
@@ -123,12 +157,18 @@ const userSlice = createSlice({
           state.currentUser.isVerified = true;
         }
       })
-      .addCase(verifyEmail.rejected, (state, action) => {
+      .addCase(verifyEmail.rejected, (state, action: PayloadAction<unknown>) => {
         state.loading = false;
         state.error = action.payload as string;
       });
   }
 });
 
-export const { loginSuccess, registerSuccess, clearUserError } = userSlice.actions;
+export const { 
+  loginSuccess, 
+  registerSuccess, 
+  clearUserError,
+  updateUserProfile 
+} = userSlice.actions;
+
 export default userSlice.reducer;
