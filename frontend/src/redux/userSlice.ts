@@ -15,6 +15,7 @@ interface VerificationResponse {
 }
 
 interface UserState {
+  userId: any;
   profile: any;
   role: any;
   currentUser: User | null;
@@ -24,6 +25,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
+  userId: undefined,
   currentUser: null,
   loading: false,
   error: null,
