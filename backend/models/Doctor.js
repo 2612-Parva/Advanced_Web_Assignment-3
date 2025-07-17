@@ -1,3 +1,5 @@
+// models/Doctor.js
+
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -6,8 +8,9 @@ const doctorSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
+    unique: true,
     validate: {
-      validator: async function(userId) {
+      validator: async function (userId) {
         const user = await mongoose.model('User').findById(userId);
         return user && user.role === 'doctor';
       },
@@ -92,56 +95,12 @@ const doctorSchema = new Schema({
     trim: true,
     maxlength: 2000
   },
-  availability: {
-    type: [
-      {
-        date: {
-          type: Date,
-          required: true,
-          validate: {
-            validator: function (value) {
-              const now = new Date();
-              const monthAhead = new Date();
-              monthAhead.setMonth(now.getMonth() + 1);
-              return value >= now && value <= monthAhead;
-            },
-            message: 'Availability must be within the next month'
-          }
-        },
-        slots: [
-          {
-            from: {
-              type: String,
-              required: true,
-              validate: {
-                validator: function (value) {
-                  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
-                },
-                message: 'From time must be in HH:mm format'
-              }
-            },
-            to: {
-              type: String,
-              required: true,
-              validate: {
-                validator: function (value) {
-                  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
-                },
-                message: 'To time must be in HH:mm format'
-              }
-            }
-          }
-        ]
-      }
-    ],
-    default: []
-  },
   profilePicture: {
     data: Buffer,
     contentType: String
   }
 
-  // Uncomment this later when admin approval is added
+  // Uncomment when admin approval is used
   // isApproved: {
   //   type: Boolean,
   //   default: false
@@ -149,13 +108,7 @@ const doctorSchema = new Schema({
 
 }, { strict: true, timestamps: true });
 
+// Enable geospatial queries
 doctorSchema.index({ location: '2dsphere' });
-
-doctorSchema.pre('save', function (next) {
-  if (!this.doctorId) {
-    this.doctorId = this._id.toString();
-  }
-  next();
-});
 
 module.exports = mongoose.model('Doctor', doctorSchema);
