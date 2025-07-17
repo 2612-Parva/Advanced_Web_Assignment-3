@@ -1,5 +1,4 @@
 const { Router } = require('express');
-const multer = require('multer');
 const { verifyToken } = require('../middleware/authmiddleware/Jwt');
 const { authorizeRoles } = require('../middleware/rolemiddleware/role');
 const {
@@ -10,25 +9,40 @@ const {
   getAvailability,
   uploadProfilePicture,
   getPublicDoctorProfile,
-  listDoctors
+  listDoctors,
+  submitDoctorCredential,
+  getDoctorCredentials,
+  approveDoctorCredential,
+  rejectDoctorCredential,
+  getDoctorCredentialById
 } = require('../controllers/doctorController');
+const { uploadCredential, uploadProfilePicture: uploadProfilePictureMiddleware } = require('../middleware/upload/doctorDocs');
 
-const upload = multer();
 const router = Router();
-
 
 router.use(verifyToken);
 
-router.get('/profile', authorizeRoles('doctor'), getDoctorProfile);
+router.get('/profile', authorizeRoles('doctor', 'admin'), getDoctorProfile);
+router.put('/profile/basic', authorizeRoles('doctor', 'admin'), updateBasicDoctorProfile);
+router.put('/profile/availability', authorizeRoles('doctor', 'admin'), updateAvailability);
+router.put('/profile/address', authorizeRoles('doctor', 'admin'), updateDoctorAddress);
+router.get('/availability', authorizeRoles('doctor', 'admin'), getAvailability);
 
-router.put('/profile/basic', authorizeRoles('doctor'), updateBasicDoctorProfile);
-router.put('/profile/availability', authorizeRoles('doctor'), updateAvailability);
-router.put('/profile/address', authorizeRoles('doctor'), updateDoctorAddress);
-
-router.post('/profile-picture', authorizeRoles('doctor'), upload.single('image'), uploadProfilePicture);
-router.get('/availability', authorizeRoles('doctor'), getAvailability);
+router.post('/profile-picture', authorizeRoles('doctor'), uploadProfilePictureMiddleware.single('image'), uploadProfilePicture);
 
 router.get('/public/:doctorId', getPublicDoctorProfile);
 router.get('/list/all', listDoctors);
+
+router.post(
+  '/:doctorId/credentials',
+  authorizeRoles('doctor'),
+  uploadCredential.single('file'),
+  submitDoctorCredential
+);
+router.get('/:doctorId/credentials', authorizeRoles('doctor'), getDoctorCredentials);
+
+router.put('/:doctorId/credentials/:credentialId/approve', authorizeRoles('admin'), approveDoctorCredential);
+router.put('/:doctorId/credentials/:credentialId/reject', authorizeRoles('admin'), rejectDoctorCredential);
+router.get('/:doctorId/credentials/:credentialId', authorizeRoles('doctor', 'admin'), getDoctorCredentialById);
 
 module.exports = router;

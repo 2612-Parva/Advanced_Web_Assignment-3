@@ -1,11 +1,9 @@
-// models/Doctor.js
-
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const doctorSchema = new Schema({
   doctorId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
     unique: true,
@@ -19,19 +17,17 @@ const doctorSchema = new Schema({
   },
   fullName: {
     type: String,
-    required: true,
     trim: true
   },
   email: {
     type: String,
-    required: true,
     lowercase: true,
     trim: true,
-    unique: true
+    unique: true,
+    sparse: true
   },
   dob: {
-    type: Date,
-    required: true
+    type: Date
   },
   gender: {
     type: String,
@@ -44,25 +40,29 @@ const doctorSchema = new Schema({
   },
   address: {
     type: String,
-    required: true
+    trim: true
   },
   location: {
     type: {
       type: String,
       enum: ['Point'],
-      required: true
+      default: 'Point',
+      required: false
     },
     coordinates: {
       type: [Number],
-      required: true,
+      default: null,
       validate: {
         validator: function (value) {
-          return value.length === 2 &&
+          return !value || (
+            value.length === 2 &&
             value[0] >= -180 && value[0] <= 180 &&
-            value[1] >= -90 && value[1] <= 90;
+            value[1] >= -90 && value[1] <= 90
+          );
         },
         message: 'Coordinates must be [longitude, latitude] within valid ranges'
-      }
+      },
+      required: false
     }
   },
   education: {
@@ -87,8 +87,7 @@ const doctorSchema = new Schema({
       'ENT Specialist',
       'Gastroenterologist',
       'General Practitioner'
-    ],
-    required: true
+    ]
   },
   bio: {
     type: String,
@@ -98,17 +97,17 @@ const doctorSchema = new Schema({
   profilePicture: {
     data: Buffer,
     contentType: String
+  },
+  isApproved: {
+    type: Boolean,
+    default: false
   }
+}, {
+  timestamps: true,
+  strict: true
+});
 
-  // Uncomment when admin approval is used
-  // isApproved: {
-  //   type: Boolean,
-  //   default: false
-  // }
-
-}, { strict: true, timestamps: true });
-
-// Enable geospatial queries
+// Geospatial index for location-based search
 doctorSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

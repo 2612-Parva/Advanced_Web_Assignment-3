@@ -1,6 +1,6 @@
 const express = require('express');
 const { verifyToken, verifyPendingToken } = require('../middleware/authmiddleware/Jwt');
-const { authorizeRoles } = require('../middleware/authmiddleware/role');
+const { authorizeRoles } = require('../middleware/rolemiddleware/role');
 const { getPatientProfile, updatePatientProfile } = require('../controllers/patientController');
 const upload = require('../middleware/upload/patientDocs');
 
