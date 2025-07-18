@@ -44,6 +44,34 @@ const SMTP = {
   FROM: process.env.EMAIL_FROM
 };
 
+const ALLOWED_SPECIALIZATIONS = [
+  'Dermatologist',
+  'Cardiologist',
+  'Oncologist',
+  'Family Medicine',
+  'Anesthesiology',
+  'Neurologist',
+  'Psychiatrist',
+  'Radiologist',
+  'Gynecologist',
+  'Orthopedic Surgeon',
+  'Pediatrician',
+  'Urologist',
+  'ENT Specialist',
+  'Gastroenterologist',
+  'General Practitioner'
+];
+
+const FILE_CONFIG = {
+  ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'],
+  MAX_SIZE: 10 * 1024 * 1024
+};
+
+const PAGINATION_LIMITS = {
+  MAX_RADIUS: 100000,
+  MAX_PAGE_SIZE: 100
+};
+
 module.exports = {
   REQUIRED_FIELDS,
   ROLES,
@@ -52,5 +80,8 @@ module.exports = {
   JWT,
   EMAIL,
   APP_BASE_URL,
-  SMTP
+  SMTP,
+  ALLOWED_SPECIALIZATIONS,
+  FILE_CONFIG,
+  PAGINATION_LIMITS
 };

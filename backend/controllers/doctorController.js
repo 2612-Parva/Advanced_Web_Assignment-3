@@ -6,37 +6,9 @@ const { responseBody } = require('../config/responseBody');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
+const {ALLOWED_SPECIALIZATIONS , FILE_CONFIG, PAGINATION_LIMITS } = require("../config/Constants")
 
-// Constants
-const ALLOWED_SPECIALIZATIONS = [
-  'Dermatologist',
-  'Cardiologist',
-  'Oncologist',
-  'Family Medicine',
-  'Anesthesiology',
-  'Neurologist',
-  'Psychiatrist',
-  'Radiologist',
-  'Gynecologist',
-  'Orthopedic Surgeon',
-  'Pediatrician',
-  'Urologist',
-  'ENT Specialist',
-  'Gastroenterologist',
-  'General Practitioner'
-];
 
-const FILE_CONFIG = {
-  ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'],
-  MAX_SIZE: 10 * 1024 * 1024 // 10MB
-};
-
-const PAGINATION_LIMITS = {
-  MAX_RADIUS: 100000,
-  MAX_PAGE_SIZE: 100
-};
-
-// Validation helpers
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const validateDoctorProfile = (data) => {
