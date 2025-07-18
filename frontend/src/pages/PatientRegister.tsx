@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../redux/hooks';
-import { registerSuccess } from '../redux/userSlice';
+import { registerSuccess } from '../redux/reducers/userReducers'; 
 
 function PatientRegister() {
   const [form, setForm] = useState({
@@ -21,6 +21,8 @@ function PatientRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(''); 
+
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -41,8 +43,9 @@ function PatientRegister() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccessMessage(''); 
 
-    // Frontend validation
+
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -62,52 +65,61 @@ function PatientRegister() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fullName: form.fullName,
-          email: form.email,
-          password: form.password,
-          phone: form.phone,
-          dob: form.dob,
-          age: form.age,
-          gender: form.gender,
-          role: 'patient',
-          securityQuestion,
-          securityAnswer
-        }),
-        credentials: 'same-origin' 
-      });
+const response = await fetch('http://localhost:8080/api/auth/register', {
+  method: 'POST',
+  headers: { 
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    fullName: form.fullName,
+    email: form.email,
+    password: form.password,
+    phone: form.phone,
+    dob: form.dob,
+    age: form.age,
+    gender: form.gender,
+    role: 'patient',
+    securityQuestion,
+    securityAnswer
+  }),
+  credentials: 'same-origin' 
+});
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+const data = await response.json();
+if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+const userData = data.body;
+    console.log('User data:', userData); 
 
-      if (!data.user || !data.user._id) {
-        throw new Error('Invalid user data received from server');
-      }
+if (!userData || !userData.ID) {
+  throw new Error('Invalid user data received from server');
+}
 
-      dispatch(registerSuccess({
-        id: data.user._id,
-        name: data.user.fullName,
-        email: data.user.email,
-        role: data.user.role,
-        isVerified: data.user.emailVerified || false,
-      }));
-
-      navigate('/verify-email', {
-        state: {
-          email: form.email,
-          userId: data.user._id 
-        }
-      });
+dispatch(registerSuccess({
+  id: userData.ID,
+  email: userData.email,
+  role: userData.role,
+  isVerified: userData.emailVerified || false,
+  profile: {
+    fullName: form.fullName,
+    email: form.email,
+    phoneNumber: form.phone
+  }
+}));
+setSuccessMessage(data.message || 'Registration successful! Please check your email for verification.');
+    setTimeout(() => {
+  navigate('/login', {
+    state: {
+      message: 'Registration successful! Please check your email for verification and then login.',
+      email: form.email
+    }
+  });
+}, 3000);
 
     } catch (err) {
+          console.error('Registration error:', err); 
+
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -117,7 +129,6 @@ function PatientRegister() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Illustration Side */}
         <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-900 to-blue-700 text-white p-8 rounded-2xl shadow-md">
           <h1 className="text-3xl font-bold mb-3 text-pink-400">Hello<span className="text-white">Doc</span></h1>
           <img src="/login-illustration.png" alt="Patient" className="w-56 h-auto mb-4" />
@@ -127,9 +138,7 @@ function PatientRegister() {
           </p>
         </div>
 
-        {/* Form Side */}
         <div className="bg-white p-6 shadow-md rounded-xl">
-          {/* Back to Home Link */}
           <div className="mb-2">
             <Link to="/" className="text-blue-600 text-xs underline hover:text-blue-800">
               ← Back to Home
@@ -150,7 +159,17 @@ function PatientRegister() {
               {error}
             </div>
           )}
+{error && (
+  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded-md text-xs">
+    {error}
+  </div>
+)}
 
+{successMessage && (
+  <div className="mb-3 p-3 bg-green-100 text-green-700 rounded-md text-xs">
+    {successMessage}
+  </div>
+)}
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
