@@ -1,7 +1,7 @@
 const express = require('express');
 const { verifyToken, verifyPendingToken } = require('../middleware/authmiddleware/Jwt');
-const checkRole = require('../middleware/authmiddleware/role');
-const { getPatientProfile,updatePatientProfile } = require('../controllers/patientController');
+const { authorizeRoles } = require('../middleware/rolemiddleware/role');
+const { getPatientProfile, updatePatientProfile } = require('../controllers/patientController');
 const upload = require('../middleware/upload/patientDocs');
 
 const {
@@ -22,14 +22,13 @@ const {
 
 const router = express.Router();
 
-router.get('/profile', verifyToken, checkRole('patient'), getPatientProfile);
-router.put('/profile', verifyToken, checkRole('patient'), updatePatientProfile);
-
+router.get('/profile', verifyToken, authorizeRoles('patient'), getPatientProfile);
+router.put('/profile', verifyToken, authorizeRoles('patient'), updatePatientProfile);
 
 router.post(
   '/upload/healthcard/front',
   verifyToken,
-  checkRole('patient'),
+  authorizeRoles('patient'),
   uploadHealthCardFront.single('file'),
   uploadHealthCardFrontcontroller
 );
@@ -37,7 +36,7 @@ router.post(
 router.post(
   '/upload/healthcard/back',
   verifyToken,
-  checkRole('patient'),
+  authorizeRoles('patient'),
   uploadHealthCardBack.single('file'),
   uploadHealthCardBackcontroller
 );
@@ -45,7 +44,7 @@ router.post(
 router.post(
   '/upload/insurance',
   verifyToken,
-  checkRole('patient'),
+  authorizeRoles('patient'),
   uploadInsurance.single('file'),
   uploadInsuranceDocument
 );
@@ -53,7 +52,7 @@ router.post(
 router.post(
   '/upload/allergy',
   verifyToken,
-  checkRole('patient'),
+  authorizeRoles('patient'),
   uploadAllergy.single('file'),
   uploadAllergyDocument
 );
@@ -61,7 +60,7 @@ router.post(
 router.post(
   '/upload/medical-history',
   verifyToken,
-  checkRole('patient'),
+  authorizeRoles('patient'),
   uploadMedical.single('file'),
   uploadMedicalHistory
 );

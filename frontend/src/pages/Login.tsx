@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../redux/hooks';
-import { loginSuccess } from '../redux/userSlice';
+import { loginSuccess } from '../redux/reducers/userReducers'; 
+import { toast } from 'react-toastify';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -45,7 +46,9 @@ function Login() {
       setSecurityQuestion(data.question);
       setTempToken(data.tempToken);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
@@ -78,18 +81,20 @@ function Login() {
         throw new Error('Invalid authentication data received');
       }
 
-      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       
       const userData = {
         id: data.user._id || data.user.id,
-        name: data.user.fullName,
         email: data.user.email,
         role: data.user.role,
-        isVerified: data.user.isVerified
+        isVerified: data.user.isVerified,
+        profile: {
+          fullName: data.user.fullName,
+          email: data.user.email
+        }
       };
       
-      localStorage.setItem('user', JSON.stringify(userData));
       dispatch(loginSuccess(userData));
 
       const redirectPath = data.user.role === 'doctor' 
@@ -99,8 +104,11 @@ function Login() {
           : '/patient/dashboard';
       
       navigate(redirectPath);
+      toast.success('Login successful!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Verification failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Verification error:', err);
     } finally {
       setIsLoading(false);
