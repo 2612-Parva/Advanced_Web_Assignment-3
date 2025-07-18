@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { bookAppointment } from "../redux/appointmentSlice";
+import { bookAppointment } from "../redux/actions/appointmentActions"; 
 import Sidebar from "../components/Patient/LeftSidebar";
 import TopNavBar from "../components/Patient/TopNavbar";
 import { usePlaceAutocomplete } from "../hooks/usePlaceAutocomplete";
 import { toast } from "react-toastify";
+import { selectAppointmentLoading, selectAppointmentError } from "../redux/selectors/appointmentSelectors"; 
+import { selectCurrentUser } from "../redux/selectors/userSelectors"; 
 
 interface AppointmentForm {
   doctorId: string;
@@ -18,8 +20,9 @@ interface AppointmentForm {
 const AppointmentBooking: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.appointment);
-  const user = useAppSelector((state) => state.user);
+  const loading = useAppSelector(selectAppointmentLoading);
+  const error = useAppSelector(selectAppointmentError);
+  const user = useAppSelector(selectCurrentUser);
 
   const [form, setForm] = useState<AppointmentForm>({
     doctorId: "", 
@@ -58,7 +61,7 @@ const AppointmentBooking: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user?.userId) {
+    if (!user?.id) { 
       toast.error("You must be logged in to book an appointment");
       return;
     }
@@ -73,6 +76,8 @@ const AppointmentBooking: React.FC = () => {
         doctorId: form.doctorId,
         scheduledFor: new Date(form.scheduledFor).toISOString(),
         reason: form.reason,
+        address: form.address,
+        postalCode: form.postalCode
       };
 
       const resultAction = await dispatch(bookAppointment(appointmentData));
