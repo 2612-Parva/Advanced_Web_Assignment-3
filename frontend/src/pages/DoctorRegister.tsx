@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../redux/hooks';
-import { loginSuccess } from '../redux/userSlice';
-
+import { registerSuccess } from '../redux/reducers/userReducers'; 
 function DoctorRegister() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -25,6 +24,8 @@ function DoctorRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(''); // Added success message state
+
 
   const securityQuestions = [
     "What city were you born in?",
@@ -57,8 +58,8 @@ function DoctorRegister() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccessMessage(''); // Clear previous success message
 
-    // Frontend validation
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -99,30 +100,43 @@ function DoctorRegister() {
       });
 
       const data = await response.json();
+      console.log('Backend response:', data); // Debug logging
 
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
       }
 
       const userData = data.body;
-
-      dispatch(loginSuccess({
-        id: userData.ID,
-        name: userData.fullName,
+      console.log('User data:', userData); // Debug logging
+ if (!userData || !userData.ID) { // Updated to use ID instead of _id
+        throw new Error('Invalid user data received from server');
+      }
+      dispatch(registerSuccess({ // Changed from loginSuccess to registerSuccess
+        id: userData.ID, // Updated to use ID instead of _id
         email: userData.email,
         role: userData.role,
-        isVerified: false 
-      }));
-
-      navigate('/login', { 
-        state: { 
-          registrationSuccess: true,
+        isVerified: userData.emailVerified || false,
+        profile: {
+          fullName: form.fullName,
           email: form.email,
-          role: 'doctor'
-        } 
-      });
+          phoneNumber: form.phone
+        }
+      }));
+            setSuccessMessage(data.message || 'Registration successful! A verification link has been sent to your email.');
+
+      setTimeout(() => {
+        navigate('/login', { 
+          state: { 
+            message: 'Registration successful! Please check your email for verification and then login.',
+            email: form.email,
+            role: 'doctor'
+          } 
+        });
+      }, 3000);
 
     } catch (err) {
+      console.error('Registration error:', err); // Debug logging
+
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
       console.error('Registration error:', err);
     } finally {
@@ -162,6 +176,12 @@ function DoctorRegister() {
           {error && (
             <div className="mb-3 p-2 bg-red-100 text-red-700 rounded-md text-xs">
               {error}
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="mb-3 p-2 bg-green-100 text-green-700 rounded-md text-xs">
+              {successMessage}
             </div>
           )}
 

@@ -1,22 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
-
-import authReducer from './authSlice';
-import userReducer from './userSlice';
-
-const initialReducers = {
-  auth: authReducer,
-  user: userReducer,
-  appointment: (state = {}) => state 
-};
-import appointmentReducer from './appointmentSlice';
-
-const finalReducers = {
-  ...initialReducers,
-  appointment: appointmentReducer 
-};
+import authReducer from './reducers/authReducers';
+import userReducer from './reducers/userReducers';
+import appointmentReducer from './reducers/appointmentReducer';
+import patientReducer from './reducers/patientReducer';
 
 export const store = configureStore({
-  reducer: finalReducers,
+  reducer: {
+    auth: authReducer,
+    user: userReducer,
+    appointment: appointmentReducer,
+    patient: patientReducer
+  },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
