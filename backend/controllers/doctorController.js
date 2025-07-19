@@ -161,7 +161,6 @@ const validatePagination = (page, limit) => {
   return { errors, pageNum, limitNum };
 };
 
-// Authorization helpers
 const checkDoctorAuth = (user, doctorId = null) => {
   if (!user || user.role !== 'doctor') {
     return { authorized: false, message: 'Only doctors can perform this action' };
@@ -194,7 +193,6 @@ const checkDoctorOrAdminAuth = (user, doctorId = null) => {
   return { authorized: true };
 };
 
-// Database helpers
 const findOrCreateDoctor = async (userId) => {
   let doctor = await Doctor.findOne({ doctorId: userId });
   
@@ -249,183 +247,232 @@ const buildDoctorFilter = (specialization, lng, lat, radius) => {
   return filter;
 };
 
-// Response helpers
-const createErrorResponse = (status, message, errors = null) => ({
-  status,
-  body: responseBody(status, message, errors)
-});
-
-const handleAsync = (fn) => async (req, res) => {
-  try {
-    await fn(req, res);
-  } catch (error) {
-    console.error(`Error in ${fn.name}: ${error.message}`);
-    res.status(500).json(responseBody(500, `Internal Server Error: ${error.message}`, null));
-  }
+const handleAsync = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next))
+    .catch((err) => {
+      console.error(`Error in ${fn.name}:`, err);
+      res
+        .status(500)
+        .json(responseBody(500, `Internal Server Error: ${err.message}`, null));
+    });
 };
 
-// Controller functions
-const getDoctorProfile = handleAsync(async (req, res) => {
-  const { user } = req;
-  
-  const authCheck = checkDoctorOrAdminAuth(user);
-  if (!authCheck.authorized) {
-    return res.status(403).json(responseBody(403, authCheck.message, null));
+ const getDoctorProfile = handleAsync(
+   async ({ user, query: { doctorId } }, res) => {
+     const { authorized, message } = checkDoctorOrAdminAuth(user);
+     if (!authorized) {
+       return res
+         .status(403)
+         .json({ status: 403, message, data: null });
+     }
+
+    const { role, userId } = user;
+    const targetId = role === 'admin' && doctorId ? doctorId : userId;
+
+    if (role === 'admin' && doctorId && !isValidObjectId(doctorId)) {
+      return res
+        .status(400)
+        .json(responseBody(400, 'Invalid doctorId', null));
+    }
+
+    // fetch and populate
+    const doctor = await Doctor
+      .findOne({ doctorId: targetId })
+      .populate('doctorId', 'fullName email');
+
+    if (!doctor) {
+      return res
+        .status(404)
+        .json(responseBody(404, 'Doctor profile not found', null));
+    }
+
+    return res
+      .status(200)
+      .json(responseBody(200, 'Doctor profile retrieved successfully', doctor));
   }
-  
-  const queryUserId = user.role === 'admin' && req.query.doctorId ? req.query.doctorId : user.userId;
-  
-  if (user.role === 'admin' && req.query.doctorId && !isValidObjectId(req.query.doctorId)) {
-    return res.status(400).json(responseBody(400, 'Invalid doctorId', null));
-  }
-  
-  const doctor = await Doctor.findOne({ doctorId: queryUserId }).populate('doctorId', 'fullName email');
-  
-  if (!doctor) {
-    return res.status(404).json(responseBody(404, 'Doctor profile not found', null));
-  }
-  
-  res.status(200).json(responseBody(200, 'Doctor profile retrieved successfully', doctor));
-});
+);
 
 const updateBasicDoctorProfile = handleAsync(async (req, res) => {
   const { user } = req;
-  
+
   const authCheck = checkDoctorOrAdminAuth(user);
   if (!authCheck.authorized) {
-    return res.status(403).json(responseBody(403, authCheck.message, null));
+    return res
+      .status(403)
+      .json(responseBody(403, authCheck.message, null));
   }
-  
-  const queryUserId = user.role === 'admin' && req.query.doctorId ? req.query.doctorId : user.userId;
-  
+
+  const targetDoctorId =
+    user.role === 'admin' && req.query.doctorId
+      ? req.query.doctorId
+      : user.userId;
   if (user.role === 'admin' && req.query.doctorId && !isValidObjectId(req.query.doctorId)) {
-    return res.status(400).json(responseBody(400, 'Invalid doctorId', null));
+    return res
+      .status(400)
+      .json(responseBody(400, 'Invalid doctorId', null));
   }
-  
-  const updates = { ...req.body };
-  const errors = validateDoctorProfile(updates);
-  
-  if (errors.length > 0) {
-    return res.status(400).json(responseBody(400, 'Validation error', errors));
-  }
-  
-  let doctor = await findOrCreateDoctor(queryUserId);
-  
-  const allowedFields = [
-    'fullName', 'dob', 'gender', 'phone', 'address', 
-    'education', 'specialization', 'bio'
-  ];
-  
-  allowedFields.forEach(field => {
-    if (updates[field] !== undefined) {
-      doctor[field] = updates[field];
-    }
-  });
-  
-  if (!doctor.location || !doctor.location.type || !doctor.location.coordinates) {
-    doctor.location = {
-      type: 'Point',
-      coordinates: [0, 0]
-    };
-  }
-  
-  console.log('Doctor document before final save:', JSON.stringify(doctor, null, 2));
-  try {
-    await doctor.save();
-  } catch (error) {
-    console.error('Error saving doctor in updateBasicDoctorProfile:', error);
-    throw new Error(`Failed to update doctor profile: ${error.message}`);
-  }
-  
-  res.status(200).json(responseBody(200, 'Doctor profile updated successfully', doctor));
-});
 
-const updateAvailability = handleAsync(async (req, res) => {
-  const { user } = req;
-  
-  const authCheck = checkDoctorAuth(user);
-  if (!authCheck.authorized) {
-    return res.status(403).json(responseBody(403, authCheck.message, null));
-  }
-  
-  const { slots } = req.body;
-  
-  if (!Array.isArray(slots) || slots.length === 0) {
-    return res.status(400).json(responseBody(400, 'Provide a non-empty array of availability slots', null));
-  }
-  
-  const errors = [];
-  slots.forEach((slot, index) => {
-    const slotErrors = validateAvailabilitySlot(slot);
-    if (slotErrors.length > 0) {
-      errors.push(`Slot ${index}: ${slotErrors.join(', ')}`);
-    }
-  });
-  
-  if (errors.length > 0) {
-    return res.status(400).json(responseBody(400, 'Validation error', errors));
-  }
-  
-  await DoctorAvailability.deleteMany({ doctorId: user.userId });
-  
-  const entries = slots.map(slot => ({
-    doctorId: user.userId,
-    title: (slot.title || 'Available').trim(),
-    start: new Date(slot.start),
-    end: new Date(slot.end),
-    location: (slot.location || '').trim(),
-    description: (slot.description || '').trim()
-  }));
-  
+  let doctor;
   try {
-    await DoctorAvailability.insertMany(entries);
-  } catch (error) {
-    console.error('Error inserting availability slots:', error);
-    throw new Error(`Failed to update availability: ${error.message}`);
+    doctor = await findOrCreateDoctor(targetDoctorId);
+  } catch (err) {
+    console.error('findOrCreateDoctor failed:', err);
+    return res
+      .status(400)
+      .json(
+        responseBody(400, `Failed to load doctor profile: ${err.message}`, null)
+      );
   }
   
-  res.status(200).json(responseBody(200, 'Availability updated successfully', entries));
-});
+  const {
+    fullName,
+    email,
+    dob,
+    gender,
+    phone,
+    education,
+    specialization,
+    bio
+  } = req.body;
 
-const updateDoctorAddress = handleAsync(async (req, res) => {
-  const { user } = req;
-  
-  const authCheck = checkDoctorAuth(user);
-  if (!authCheck.authorized) {
-    return res.status(403).json(responseBody(403, authCheck.message, null));
+  const userUpdates = {
+    ...(fullName     && { fullName }),
+    ...(email        && { email })
+  };
+
+  const doctorUpdates = {
+    ...(dob           && { dob }),
+    ...(gender        && { gender }),
+    ...(phone         && { phone }),
+    ...(education     && { education }),
+    ...(specialization&& { specialization }),
+    ...(bio           && { bio })
+  };
+
+  let updatedUser = null;
+  if (Object.keys(userUpdates).length) {
+    updatedUser = await User.findByIdAndUpdate(
+      targetDoctorId,
+      userUpdates,
+      { new: true, runValidators: true }
+    );
   }
-  
-  const { address, coordinates } = req.body;
-  
-  const addressErrors = address?.trim() ? [] : ['address must be a non-empty string up to 500 characters'];
-  const coordinateErrors = validateCoordinates(coordinates);
-  const errors = [...addressErrors, ...coordinateErrors];
-  
-  if (errors.length > 0) {
-    return res.status(400).json(responseBody(400, 'Validation error', errors));
+
+  Object.assign(doctor, doctorUpdates);
+
+  if (!doctor.location?.coordinates) {
+    doctor.location = { type: 'Point', coordinates: [0, 0] };
   }
-  
-  const doctor = await Doctor.findOneAndUpdate(
-    { doctorId: user.userId },
-    {
-      address: address.trim(),
-      location: {
-        type: 'Point',
-        coordinates: [coordinates[0], coordinates[1]]
-      }
-    },
-    { new: true, runValidators: true }
+
+  const savedDoctor = await doctor.save();
+  return res.status(200).json(
+    responseBody(200, 'Doctor profile updated successfully', {
+      user:   updatedUser || undefined,
+      doctor: savedDoctor
+    })
   );
-  
-  if (!doctor) {
-    return res.status(404).json(responseBody(404, 'Doctor profile not found', null));
-  }
-  
-  res.status(200).json(responseBody(200, 'Address updated successfully', {
-    address: doctor.address,
-    location: doctor.location
-  }));
 });
+
+const updateAvailability = handleAsync(
+  async ({ user, body: { slots } }, res) => {
+    const { authorized, message } = checkDoctorAuth(user);
+    if (!authorized) {
+      return res
+        .status(403)
+        .json(responseBody(403, message, null));
+    }
+
+    if (!Array.isArray(slots) || slots.length === 0) {
+      return res
+        .status(400)
+        .json(responseBody(400, 'Provided a non-empty array of availability slots', null));
+    }
+
+    const errors = slots.reduce((errs, slot, idx) => {
+      const slotErrs = validateAvailabilitySlot(slot);
+      if (slotErrs.length) {
+        errs.push(`Slot ${idx}: ${slotErrs.join(', ')}`);
+      }
+      return errs;
+    }, []);
+
+    if (errors.length > 0) {
+      return res
+        .status(400)
+        .json(responseBody(400, 'Validation error', errors));
+    }
+
+    await DoctorAvailability.deleteMany({ doctorId: user.userId });
+
+    const entries = slots.map(
+      ({ title = 'Available', start, end, location = '', description = '' }) => ({
+        doctorId:   user.userId,
+        title:      title.trim(),
+        start:      new Date(start),
+        end:        new Date(end),
+        location:   location.trim(),
+        description: description.trim(),
+      })
+    );
+
+    const saved = await DoctorAvailability.insertMany(entries);
+    return res
+      .status(200)
+      .json(responseBody(200, 'Availability updated successfully', saved));
+  }
+);
+
+const updateDoctorAddress = handleAsync(
+  async ({ user, body: { address = '', coordinates } }, res) => {
+
+    const { authorized, message } = checkDoctorAuth(user);
+    if (!authorized) {
+      return res
+        .status(403)
+        .json(responseBody(403, message, null));
+    }
+
+    const trimmed = address.trim();
+    const errors = [
+      ...(!trimmed
+        ? ['address must be a non-empty string up to 500 characters']
+        : []),
+      ...validateCoordinates(coordinates)
+    ];
+    if (errors.length) {
+      return res
+        .status(400)
+        .json(responseBody(400, 'Validation error', errors));
+    }
+
+    const updated = await Doctor.findOneAndUpdate(
+      { doctorId: user.userId },
+      {
+        address: trimmed,
+        location: {
+          type: 'Point',
+          coordinates
+        }
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json(responseBody(404, 'Doctor profile not found', null));
+    }
+
+    return res
+      .status(200)
+      .json(
+        responseBody(200, 'Address updated successfully', {
+          address:  updated.address,
+          location: updated.location
+        })
+      );
+  }
+);
 
 const getAvailability = handleAsync(async (req, res) => {
   const { user } = req;
@@ -437,7 +484,7 @@ const getAvailability = handleAsync(async (req, res) => {
   
   const availability = await DoctorAvailability.find({ doctorId: user.userId }).sort({ start: 1 });
   
-  res.status(200).json(responseBody(200, 'Availability retrieved successfully', availability));
+  return res.status(200).json(responseBody(200, 'Availability retrieved successfully', availability));
 });
 
 const uploadProfilePicture = handleAsync(async (req, res) => {
@@ -475,10 +522,10 @@ const uploadProfilePicture = handleAsync(async (req, res) => {
     await doctor.save();
   } catch (error) {
     console.error('Error saving profile picture:', error);
-    throw new Error(`Failed to update profile picture: ${error.message}`);
+    return res.status(400).json(400, `Error saving profile picture: ${error}`, null)
   }
   
-  res.status(200).json(responseBody(200, 'Profile picture updated successfully', null));
+  return res.status(200).json(responseBody(200, 'Profile picture updated successfully', null));
 });
 
 const getPublicDoctorProfile = handleAsync(async (req, res) => {
@@ -505,7 +552,7 @@ const getPublicDoctorProfile = handleAsync(async (req, res) => {
     availability
   };
   
-  res.status(200).json(responseBody(200, 'Doctor profile retrieved', publicProfile));
+  return res.status(200).json(responseBody(200, 'Doctor profile retrieved', publicProfile));
 });
 
 const listDoctors = handleAsync(async (req, res) => {
@@ -558,7 +605,7 @@ const listDoctors = handleAsync(async (req, res) => {
     Doctor.countDocuments({ ...filter, location: { $ne: null } })
   ]);
   
-  res.status(200).json(responseBody(200, 'Doctors retrieved successfully', {
+  return res.status(200).json(responseBody(200, 'Doctors retrieved successfully', {
     doctors,
     pagination: {
       page: pageNum,
@@ -605,7 +652,9 @@ const submitDoctorCredential = handleAsync(async (req, res) => {
     }));
   } catch (error) {
     console.error('Error submitting credential:', error);
-    throw new Error(`Failed to submit credential: ${error.message}`);
+    return res.status(500).json(
+      responseBody(500, `Error submitting credentials: ${error.message}`, null)
+    )
   }
 });
 
@@ -628,7 +677,7 @@ const getDoctorCredentials = handleAsync(async (req, res) => {
     return res.status(404).json(responseBody(404, 'No credential found', null));
   }
   
-  res.status(200).json(responseBody(200, 'Credential retrieved', {
+  return res.status(200).json(responseBody(200, 'Credential retrieved', {
     credentialId: credential._id,
     doctorId: credential.doctorId,
     fileName: credential.fileName,
@@ -679,7 +728,9 @@ const processCredentialReview = async (req, res, isApproval) => {
     await credential.save();
   } catch (error) {
     console.error('Error saving credential review:', error);
-    throw new Error(`Failed to process credential review: ${error.message}`);
+    return res.status(500).json(
+      responseBody(`Failed to process credential review: ${error.message}`, null)
+    )
   }
   
   const response = {
@@ -695,7 +746,7 @@ const processCredentialReview = async (req, res, isApproval) => {
   }
   
   const message = isApproval ? 'Credential approved' : 'Credential rejected';
-  res.status(200).json(responseBody(200, message, response));
+  return res.status(200).json(responseBody(200, message, response));
 };
 
 const approveDoctorCredential = handleAsync(async (req, res) => {
@@ -724,7 +775,7 @@ const getDoctorCredentialById = handleAsync(async (req, res) => {
     return res.status(404).json(responseBody(404, 'Credential not found', null));
   }
   
-  res.status(200).json(responseBody(200, 'Credential retrieved', {
+  return res.status(200).json(responseBody(200, 'Credential retrieved', {
     credentialId: credential._id,
     doctorId: credential.doctorId,
     fileName: credential.fileName,

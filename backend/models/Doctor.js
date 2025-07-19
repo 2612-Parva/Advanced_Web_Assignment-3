@@ -15,17 +15,6 @@ const doctorSchema = new Schema({
       message: 'Invalid doctor ID or user is not a doctor'
     }
   },
-  fullName: {
-    type: String,
-    trim: true
-  },
-  email: {
-    type: String,
-    lowercase: true,
-    trim: true,
-    unique: true,
-    sparse: true
-  },
   dob: {
     type: Date
   },
