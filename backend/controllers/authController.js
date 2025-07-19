@@ -112,7 +112,6 @@ const loginStepOne = async (req, res) => {
 
 const loginStepTwo = async (req, res) => {
   try {
-    // userId was set by verifyPendingToken middleware
     const userId = req.userId;
     const { securityAnswer } = req.body;
 
