@@ -45,9 +45,9 @@ const PatientCalendar: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Sidebar */}
-      <div className="w-[80px] bg-blue-600 text-white">
+      <div className="hidden md:block w-[80px] bg-blue-600 text-white">
         <LeftSidebar />
       </div>
 
@@ -59,8 +59,8 @@ const PatientCalendar: React.FC = () => {
         </div>
 
         {/* Calendar Content */}
-        <div className="p-6 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-sm p-4 overflow-x-auto">
             <FullCalendar
               plugins={[timeGridPlugin, interactionPlugin, dayGridPlugin]}
               initialView="timeGridWeek"
@@ -73,7 +73,7 @@ const PatientCalendar: React.FC = () => {
                 right: "timeGridDay,timeGridWeek,dayGridMonth",
               }}
               height="auto"
-              allDaySlot={false} // ✅ This line removes the "All-day" slot
+              allDaySlot={false}
               dayMaxEvents={true}
               eventContent={(arg) => (
                 <div className="cursor-pointer">
