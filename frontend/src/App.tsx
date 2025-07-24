@@ -14,6 +14,8 @@ import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import PatientDashboard from './pages/PatientDashboard'
 import DoctorDashboard from './pages/DoctorDashboard'
+import PatientCalendar from './pages/PatientCalendar'
+
 
 function App() {
   return (
@@ -37,6 +39,20 @@ function App() {
           <Route path="*" element={<Home />} />
         </Routes>
       </Router>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/patientregister" element={<PatientRegister />} />
+        <Route path="/doctorregister" element={<DoctorRegister />} />
+        <Route path="/book-appointment" element={<AppointmentBooking />} />
+        <Route path="/select-doctor" element={<DoctorSelection />} />
+        <Route path="/doctor-profile" element={<DoctorProfile />} />
+        <Route path="/patient-profile" element={<PatientProfile />} />
+        <Route path="/calendar" element={<PatientCalendar />} />
+
+        <Route path="*" element={<Home/>} /> 
+      </Routes>
+    </Router>
     </div>
   )
 }
