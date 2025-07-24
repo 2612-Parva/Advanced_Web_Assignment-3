@@ -10,7 +10,7 @@ import {
 import { NavLink, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { label: 'Dashboard', icon: <LayoutGrid />, to: '/dashboard' },
+  { label: 'Dashboard', icon: <LayoutGrid />, to: '/patient/dashboard' },
   { label: 'Appointments', icon: <Calendar />, to: '/appointments' },
   { label: 'Chat', icon: <MessageCircle />, to: '/consultations' },
   { label: 'appointment-booking', icon: <BookOpen />, to: '/book-appointment' },
