@@ -5,27 +5,42 @@ import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import type { EventClickArg, DateClickArg } from "@fullcalendar/core";
 
-import TopNavbar from "../components/Patient/TopNavbar";
-import LeftSidebar from "../components/Patient/LeftSidebar";
+import TopNavbar from "../components/Doctor/TopNavbar";
+import DoctorSidebar from "../components/Doctor/DoctorSidebar";
 
-const PatientCalendar: React.FC = () => {
+const DoctorCalendar: React.FC = () => {
   const events = [
     {
       id: "1",
-      title: "Dr. Kim Appointment",
+      title: "John Smith Appointment",
       start: "2025-07-25T08:00:00",
       color: "#f43f5e",
       extendedProps: {
+        patientName: "John Smith",
+        appointmentType: "General Checkup",
         joinLink: "/join/1",
       },
     },
     {
       id: "2",
-      title: "Dr. Stacy Appointment",
+      title: "Sarah Johnson Appointment",
       start: "2025-07-26T09:30:00",
       color: "#10b981",
       extendedProps: {
+        patientName: "Sarah Johnson",
+        appointmentType: "Follow-up",
         joinLink: "/join/2",
+      },
+    },
+    {
+      id: "3",
+      title: "Michael Brown Appointment",
+      start: "2025-07-27T14:00:00",
+      color: "#3b82f6",
+      extendedProps: {
+        patientName: "Michael Brown",
+        appointmentType: "Consultation",
+        joinLink: "/join/3",
       },
     },
   ];
@@ -37,10 +52,11 @@ const PatientCalendar: React.FC = () => {
 
   const handleDateClick = (info: DateClickArg) => {
     const confirmed = window.confirm(
-      `Do you want to book an appointment on ${info.dateStr}?`
+      `Do you want to block this time slot on ${info.dateStr}?`
     );
     if (confirmed) {
-      window.location.href = `/book-appointment?date=${info.dateStr}`;
+      // Handle blocking time slot or creating availability
+      console.log(`Blocking time slot: ${info.dateStr}`);
     }
   };
 
@@ -48,7 +64,7 @@ const PatientCalendar: React.FC = () => {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <div className="w-[80px] bg-blue-600 text-white">
-        <LeftSidebar />
+        <DoctorSidebar />
       </div>
 
       {/* Main content */}
@@ -77,7 +93,10 @@ const PatientCalendar: React.FC = () => {
               eventContent={(arg) => (
                 <div className="cursor-pointer">
                   <div className="text-white text-sm font-medium px-2">
-                    {arg.event.title}
+                    {arg.event.extendedProps.patientName}
+                  </div>
+                  <div className="text-white text-xs px-2 opacity-90">
+                    {arg.event.extendedProps.appointmentType}
                   </div>
                   <button className="mt-1 text-xs px-2 py-0.5 rounded bg-black text-white shadow hover:scale-105">
                     Join Now
@@ -99,4 +118,4 @@ const PatientCalendar: React.FC = () => {
   );
 };
 
-export default PatientCalendar;
+export default DoctorCalendar;
