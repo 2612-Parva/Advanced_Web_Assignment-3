@@ -6,10 +6,14 @@ import DoctorRegister from './pages/DoctorRegister'
 import Home from './pages/Home'
 import AppointmentBooking from './pages/AppointmentBooking'
 import DoctorSelection from './pages/DoctorSelection'
-import DoctorProfile from './pages/DoctorProfile';
+import DoctorProfile from './pages/DoctorProfile'
 import PatientProfile from './pages/PatientProfile'
 import PatientDashboard from './pages/PatientDashboard'
 import DoctorDashboard from './pages/DoctorDashboard'
+import ForgotPassword from './pages/ForgotPassword'
+import VerifyOtpPage from './pages/VerifyOtp'
+import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import PatientCalendar from './pages/PatientCalendar'
 import DoctorCalendar from './pages/DoctorCalendar'
 
@@ -17,6 +21,7 @@ import DoctorCalendar from './pages/DoctorCalendar'
 function App() {
   return (
     <div data-testid="app-container">
+      
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -30,6 +35,10 @@ function App() {
         <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
         <Route path="/patient-calendar" element={<PatientCalendar />} />
         <Route path="/doctor-calendar" element={<DoctorCalendar />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         <Route path="*" element={<Home/>} /> 
       </Routes>

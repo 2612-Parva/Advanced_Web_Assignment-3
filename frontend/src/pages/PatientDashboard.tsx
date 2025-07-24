@@ -201,8 +201,8 @@ const PatientDashboard: React.FC = () => {
 
             {/* Enhanced Quick Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {quickStats.map((stat, index) => (
-                <div key={index} className="group relative bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              {quickStats.map((stat, statIndex) => (
+                <div key={statIndex} className="group relative bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <div className="flex items-center justify-between mb-4">
                     <div className={`bg-gradient-to-r ${stat.color} text-white p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                       {stat.icon}
@@ -244,7 +244,7 @@ const PatientDashboard: React.FC = () => {
                 <div className="p-4 md:p-6">
                   {getUpcomingAppointments().length > 0 ? (
                     <div className="space-y-4">
-                      {getUpcomingAppointments().map((appointment, index) => (
+                      {getUpcomingAppointments().map((appointment) => (
                         <div key={appointment._id} className="group flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-100 hover:shadow-md transition-all duration-300">
                           <div className="flex items-center space-x-4">
                             <div className="relative">

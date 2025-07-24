@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import type { EventClickArg } from "@fullcalendar/core";
+import type { EventClickArg, DateClickArg } from "@fullcalendar/core";
 
 import TopNavbar from "../components/Doctor/TopNavbar";
 import DoctorSidebar from "../components/Doctor/DoctorSidebar";
@@ -50,7 +50,7 @@ const DoctorCalendar: React.FC = () => {
     if (link) window.location.href = link;
   };
 
-  const handleDateClick = (info: any) => {
+  const handleDateClick = (info: DateClickArg) => {
     const confirmed = window.confirm(
       `Do you want to block this time slot on ${info.dateStr}?`
     );

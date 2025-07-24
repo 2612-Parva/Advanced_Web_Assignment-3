@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Bell, ChevronDown, TrendingUp, TrendingDown, Calendar, Clock, User, Thermometer, Stethoscope, HeartPulse, Pill } from 'lucide-react';
+import { Search, Bell, ChevronDown, TrendingUp, TrendingDown, Thermometer, Stethoscope, HeartPulse } from 'lucide-react';
 import DoctorSidebar from '../components/Doctor/DoctorSidebar';
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { useAppSelector } from '../redux/hooks';
 import { selectCurrentUser } from '../redux/selectors/userSelectors';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
 
 interface Patient {
   id: string;
@@ -25,10 +25,10 @@ interface PatientDetail {
 }
 
 const DoctorDashboard: React.FC = () => {
-  const user = useAppSelector(selectCurrentUser);
+  const currentUser = useAppSelector(selectCurrentUser);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedPatient, setSelectedPatient] = useState<PatientDetail | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -124,11 +124,16 @@ const DoctorDashboard: React.FC = () => {
               </button>
               <div className="flex items-center space-x-3">
                 <img
-                  src="https://ui-avatars.com/api/?name=Dr+Kim&background=3b82f6&color=fff"
+                  src={currentUser?.profile?.fullName 
+                    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.profile.fullName)}&background=3b82f6&color=fff`
+                    : "https://ui-avatars.com/api/?name=Dr+Kim&background=3b82f6&color=fff"
+                  }
                   alt="Doctor"
                   className="w-8 h-8 rounded-full"
                 />
-                <span className="text-sm font-medium text-gray-700">Dr. Kim</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {currentUser?.profile?.fullName || 'Dr. Kim'}
+                </span>
               </div>
             </div>
           </div>
@@ -140,7 +145,9 @@ const DoctorDashboard: React.FC = () => {
             {/* Welcome Section */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-800 mb-1">
-                {getTimeBasedGreeting()} <span className="text-blue-600">Dr. Kim!</span>
+                {getTimeBasedGreeting()} <span className="text-blue-600">
+                  {currentUser?.profile?.fullName || 'Dr. Kim'}!
+                </span>
               </h1>
             </div>
 
@@ -317,8 +324,8 @@ const DoctorDashboard: React.FC = () => {
 
                       {/* Symptoms */}
                       <div className="flex items-center space-x-2 mb-4">
-                        {selectedPatient.symptoms.map((symptom, index) => (
-                          <div key={index} className="flex items-center space-x-1">
+                        {selectedPatient.symptoms.map((symptom, symptomIndex) => (
+                          <div key={symptomIndex} className="flex items-center space-x-1">
                             {symptom === 'Fever' && <Thermometer className="w-4 h-4 text-blue-500" />}
                             {symptom === 'Cough' && <Stethoscope className="w-4 h-4 text-blue-500" />}
                             {symptom === 'Heart Burn' && <HeartPulse className="w-4 h-4 text-blue-500" />}
