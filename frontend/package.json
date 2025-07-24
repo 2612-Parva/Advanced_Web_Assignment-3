@@ -11,6 +11,10 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.18",
+    "@fullcalendar/interaction": "^6.1.18",
+    "@fullcalendar/react": "^6.1.18",
+    "@fullcalendar/timegrid": "^6.1.18",
     "@googlemaps/js-api-loader": "^1.16.10",
     "@reduxjs/toolkit": "^2.8.2",
     "date-fns": "^4.1.0",

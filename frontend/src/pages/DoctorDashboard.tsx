@@ -94,12 +94,14 @@ const DoctorDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <DoctorSidebar />
+      <div className="w-[80px] bg-blue-600 text-white">
+        <DoctorSidebar />
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-20">
+      <div className="flex-1 flex flex-col bg-gray-50">
         {/* Top Navigation */}
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">

@@ -10,6 +10,9 @@ import DoctorProfile from './pages/DoctorProfile';
 import PatientProfile from './pages/PatientProfile'
 import PatientDashboard from './pages/PatientDashboard'
 import DoctorDashboard from './pages/DoctorDashboard'
+import PatientCalendar from './pages/PatientCalendar'
+import DoctorCalendar from './pages/DoctorCalendar'
+
 
 function App() {
   return (
@@ -23,8 +26,11 @@ function App() {
         <Route path="/select-doctor" element={<DoctorSelection />} />
         <Route path="/doctor-profile" element={<DoctorProfile />} />
         <Route path="/patient-profile" element={<PatientProfile />} />
-        <Route path="/patient/dashboard" element={<PatientDashboard />} />
-        <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+        <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+        <Route path="/patient-calendar" element={<PatientCalendar />} />
+        <Route path="/doctor-calendar" element={<DoctorCalendar />} />
+
         <Route path="*" element={<Home/>} /> 
       </Routes>
     </Router>
