@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosResponse } from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import type {
     Doctor,
@@ -7,12 +7,37 @@ import type {
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
+// Define API response structure
+interface ApiResponse<T = unknown> {
+  data: {
+    body: T;
+  };
+}
+
+// Define direct response structure for axios calls
+interface DirectApiResponse {
+  data: {
+    body: unknown;
+  };
+}
+
+// Define error structure
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message: string;
+}
+
+// Helper function for API calls
 const apiRequest = async (
   url: string,
   method: string = 'GET',
-  data?: any,
+  data?: unknown,
   headers: Record<string, string> = {}
-) => {
+): Promise<AxiosResponse<ApiResponse>> => {
   const token = localStorage.getItem('accessToken');
   const config = {
     method,
@@ -34,9 +59,10 @@ export const getDoctorProfile = createAsyncThunk(
     try {
       const url = doctorId ? `/doctors/profile?doctorId=${doctorId}` : '/doctors/profile';
       const response = await apiRequest(url);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -46,9 +72,10 @@ export const updateBasicDoctorProfile = createAsyncThunk(
   async (profileData: Partial<Doctor>, { rejectWithValue }) => {
     try {
       const response = await apiRequest('/doctors/profile/basic', 'PUT', profileData);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -58,9 +85,10 @@ export const updateDoctorAddress = createAsyncThunk(
   async (addressData: { address: string; coordinates: [number, number] }, { rejectWithValue }) => {
     try {
       const response = await apiRequest('/doctors/profile/address', 'PUT', addressData);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -73,15 +101,16 @@ export const uploadProfilePicture = createAsyncThunk(
       formData.append('image', file);
       
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post(`${API_BASE_URL}/doctors/profile-picture`, formData, {
+      const response = await axios.post<DirectApiResponse>(`${API_BASE_URL}/doctors/profile-picture`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -92,22 +121,24 @@ export const updateAvailability = createAsyncThunk(
   async (slots: DoctorAvailability[], { rejectWithValue }) => {
     try {
       const response = await apiRequest('/doctors/profile/availability', 'PUT', { slots });
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
 
 export const getAvailability = createAsyncThunk(
   'doctor/getAvailability',
-  async ({ doctorId }: { doctorId?: string }, { rejectWithValue }) => {
+  async ({ doctorId }: { doctorId?: string } = {}, { rejectWithValue }) => {
     try {
       const url = doctorId ? `/doctors/availability?doctorId=${doctorId}` : '/doctors/availability';
       const response = await apiRequest(url);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -121,15 +152,16 @@ export const submitDoctorCredential = createAsyncThunk(
       formData.append('file', file);
       
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post(`${API_BASE_URL}/doctors/${doctorId}/credentials`, formData, {
+      const response = await axios.post<DirectApiResponse>(`${API_BASE_URL}/doctors/${doctorId}/credentials`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -139,9 +171,10 @@ export const getDoctorCredentials = createAsyncThunk(
   async (doctorId: string, { rejectWithValue }) => {
     try {
       const response = await apiRequest(`/doctors/${doctorId}/credentials`);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -151,9 +184,10 @@ export const getDoctorCredentialById = createAsyncThunk(
   async ({ doctorId, credentialId }: { doctorId: string; credentialId: string }, { rejectWithValue }) => {
     try {
       const response = await apiRequest(`/doctors/${doctorId}/credentials/${credentialId}`);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -167,9 +201,10 @@ export const approveDoctorCredential = createAsyncThunk(
         'PUT',
         { adminId }
       );
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -183,9 +218,10 @@ export const rejectDoctorCredential = createAsyncThunk(
         'PUT',
         { adminId, reason }
       );
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -196,9 +232,10 @@ export const getPublicDoctorProfile = createAsyncThunk(
   async (doctorId: string, { rejectWithValue }) => {
     try {
       const response = await apiRequest(`/doctors/public/${doctorId}`);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );
@@ -224,9 +261,10 @@ export const listDoctors = createAsyncThunk(
       const queryString = queryParams.toString();
       const url = queryString ? `/doctors/list/all?${queryString}` : '/doctors/list/all';
       const response = await apiRequest(url);
-      return response.data.body;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return response.data.data.body;
+    } catch (error) {
+      const apiError = error as ApiError;
+      return rejectWithValue(apiError.response?.data?.message || apiError.message);
     }
   }
 );

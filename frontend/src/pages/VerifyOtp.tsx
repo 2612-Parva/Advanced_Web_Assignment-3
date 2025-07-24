@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { verifyOtp } from '../redux/actions/authActions';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-const VerifyOtpPage = () => {
+interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+const VerifyOtpPage: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -30,18 +33,46 @@ const VerifyOtpPage = () => {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const verifyOtpApi = async (data: VerifyOtpRequest): Promise<void> => {
+    const response = await fetch('http://localhost:8080/api/auth/verify-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'OTP verification failed');
+    }
+
+    return result;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      await dispatch(verifyOtp({ email, otp }) as any);
+      await verifyOtpApi({ email, otp });
+      toast.success('OTP verified successfully!');
       navigate('/reset-password', { state: { email, otp } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      const errorMessage = err instanceof Error ? err.message : 'Verification failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 6) {
+      setOtp(value);
     }
   };
 
@@ -77,9 +108,10 @@ const VerifyOtpPage = () => {
                 required
                 maxLength={6}
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} // Only allow digits
+                onChange={handleOtpChange}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="000000"
+                autoComplete="one-time-code"
               />
             </div>
 

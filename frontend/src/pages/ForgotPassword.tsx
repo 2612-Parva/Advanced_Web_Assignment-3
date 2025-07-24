@@ -1,36 +1,66 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { forgotPassword } from '../redux/actions/authActions';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-const ForgotPassword = () => {
+interface ForgotPasswordRequest {
+  email: string;
+}
+
+const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const forgotPasswordApi = async (data: ForgotPasswordRequest): Promise<void> => {
+    const response = await fetch('http://localhost:8080/api/auth/forgot-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to send OTP');
+    }
+
+    return result;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
 
     try {
-      await dispatch(forgotPassword({ email }) as any);
+      await forgotPasswordApi({ email });
       
-      setSuccessMessage('OTP sent successfully! Redirecting to verification page...');
+      const message = 'OTP sent successfully! Redirecting to verification page...';
+      setSuccessMessage(message);
+      toast.success('OTP sent to your email!');
       
       setTimeout(() => {
         navigate('/verify-otp', { state: { email } });
       }, 2000);
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send OTP. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send OTP. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setEmail(e.target.value);
+    if (error) setError('');
   };
 
   return (
@@ -70,7 +100,7 @@ const ForgotPassword = () => {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email address"
               />
@@ -78,9 +108,9 @@ const ForgotPassword = () => {
 
             <button
               type="submit"
-              disabled={loading || !email}
+              disabled={loading || !email.trim()}
               className={`w-full bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-900 transition flex justify-center items-center ${
-                loading || !email ? 'opacity-50 cursor-not-allowed' : ''
+                loading || !email.trim() ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
               {loading ? (
