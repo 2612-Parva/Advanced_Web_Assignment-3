@@ -1,99 +1,33 @@
-import React from "react";
-import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import type { EventClickArg } from "@fullcalendar/core";
+import React from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import type { DateClickArg } from '@fullcalendar/interaction';
 
-import TopNavbar from "../components/Patient/TopNavbar";
-import LeftSidebar from "../components/Patient/LeftSidebar";
 
 const PatientCalendar: React.FC = () => {
-  const events = [
-    {
-      id: "1",
-      title: "Dr. Kim Appointment",
-      start: "2025-07-25T08:00:00",
-      color: "#f43f5e",
-      extendedProps: {
-        joinLink: "/join/1",
-      },
-    },
-    {
-      id: "2",
-      title: "Dr. Stacy Appointment",
-      start: "2025-07-26T09:30:00",
-      color: "#10b981",
-      extendedProps: {
-        joinLink: "/join/2",
-      },
-    },
-  ];
-
-  const handleEventClick = (info: EventClickArg) => {
-    const link = info.event.extendedProps.joinLink;
-    if (link) window.location.href = link;
-  };
-
-  const handleDateClick = (info: any) => {
-    const confirmed = window.confirm(
-      `Do you want to book an appointment on ${info.dateStr}?`
-    );
-    if (confirmed) {
-      window.location.href = `/book-appointment?date=${info.dateStr}`;
-    }
+  const handleDateClick = (arg: DateClickArg) => {
+    alert(`You clicked on date: ${arg.dateStr}`);
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden">
-      {/* Sidebar */}
-      <div className="hidden md:block w-[80px] bg-blue-600 text-white">
-        <LeftSidebar />
-      </div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-blue-700 mb-6">My Appointment Calendar</h1>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col bg-white">
-        {/* Top Navbar */}
-        <div className="w-full border-b shadow-sm">
-          <TopNavbar />
-        </div>
-
-        {/* Calendar Content */}
-        <div className="flex-1 p-4 md:p-6 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-sm p-4 overflow-x-auto">
-            <FullCalendar
-              plugins={[timeGridPlugin, interactionPlugin, dayGridPlugin]}
-              initialView="timeGridWeek"
-              events={events}
-              eventClick={handleEventClick}
-              dateClick={handleDateClick}
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "timeGridDay,timeGridWeek,dayGridMonth",
-              }}
-              height="auto"
-              allDaySlot={false}
-              dayMaxEvents={true}
-              eventContent={(arg) => (
-                <div className="cursor-pointer">
-                  <div className="text-white text-sm font-medium px-2">
-                    {arg.event.title}
-                  </div>
-                  <button className="mt-1 text-xs px-2 py-0.5 rounded bg-black text-white shadow hover:scale-105">
-                    Join Now
-                  </button>
-                </div>
-              )}
-              dayCellDidMount={(info) => {
-                info.el.style.cursor = "pointer";
-              }}
-              slotLaneClassNames="cursor-pointer"
-              slotLabelClassNames="cursor-pointer"
-              dayHeaderClassNames="cursor-pointer"
-              eventClassNames={() => "cursor-pointer"}
-            />
-          </div>
+        <div className="bg-white shadow rounded-lg overflow-hidden p-4">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+            }}
+            height="auto"
+            dateClick={handleDateClick}
+          />
         </div>
       </div>
     </div>
