@@ -12,8 +12,6 @@ import ForgotPassword from './pages/ForgotPassword'
 import VerifyOtpPage from './pages/VerifyOtp'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
-import PatientDashboard from './pages/PatientDashboard'
-import DoctorDashboard from './pages/DoctorDashboard'
 import PatientCalendar from './pages/PatientCalendar'
 
 
@@ -33,8 +31,6 @@ function App() {
           <Route path="/verify-otp" element={<VerifyOtpPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/patient-dashboard" element={<PatientDashboard />} />
-          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
           
           <Route path="*" element={<Home />} />
         </Routes>
