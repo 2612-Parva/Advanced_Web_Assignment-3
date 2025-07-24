@@ -18,200 +18,198 @@ function Login() {
   const dispatch = useAppDispatch();
 
   const handleStepOne = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError('');
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
-  try {
-    const response = await fetch('http://localhost:8080/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-      credentials: 'same-origin',
-    });
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'same-origin',
+      });
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (!response.ok) {
-      switch (response.status) {
-        case 400:
-          throw new Error(result.message || 'Invalid email or password');
-        case 401:
-          throw new Error(result.message || 'Invalid credentials');
-        case 403:
-          throw new Error(result.message || 'Account not verified. Please check your email.');
-        case 404:
-          throw new Error(result.message || 'Account not found');
-        case 409:
-          throw new Error(result.message || 'Account conflict. Please contact support.');
-        case 500:
-          throw new Error('Server error. Please try again later.');
-        default:
-          throw new Error(result.message || `Login failed (${response.status})`);
-      }
-    }
-
-    if (result.status === 200 && result.body) {
-      const data = result.body;
-      
-      if (data.accessToken && data.user) {
-        const { accessToken, refreshToken, user } = data;
-        
-        localStorage.setItem('accessToken', accessToken);
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
+      if (!response.ok) {
+        switch (response.status) {
+          case 400:
+            throw new Error(result.message || 'Invalid email or password');
+          case 401:
+            throw new Error(result.message || 'Invalid credentials');
+          case 403:
+            throw new Error(result.message || 'Account not verified. Please check your email.');
+          case 404:
+            throw new Error(result.message || 'Account not found');
+          case 409:
+            throw new Error(result.message || 'Account conflict. Please contact support.');
+          case 500:
+            throw new Error('Server error. Please try again later.');
+          default:
+            throw new Error(result.message || `Login failed (${response.status})`);
         }
+      }
 
-        dispatch(loginSuccess({
-          id: user.ID || user._id || user.id, 
-          email: user.email,
-          role: user.role,
-          isVerified: user.emailVerified || user.isVerified || true, 
-          profile: {
-            fullName: user.fullName || user.name || 'User',
+      if (result.status === 200 && result.body) {
+        const data = result.body;
+        
+        if (data.accessToken && data.user) {
+          const { accessToken, refreshToken, user } = data;
+          
+          localStorage.setItem('accessToken', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+          }
+
+          dispatch(loginSuccess({
+            id: user.ID || user._id || user.id, 
             email: user.email,
-          },
-        }));
+            role: user.role,
+            isVerified: user.emailVerified || user.isVerified || true, 
+            profile: {
+              fullName: user.fullName || user.name || 'User',
+              email: user.email,
+            },
+          }));
 
-        const redirectPath = user.role === 'doctor'
-          ? '/doctor/dashboard'
-          : user.role === 'admin'
-            ? '/admin/dashboard'
-            : '/patient/dashboard';
+          // Updated dashboard routing
+          const redirectPath = user.role === 'doctor'
+            ? '/doctor-dashboard'
+            : user.role === 'admin'
+              ? '/admin-dashboard'
+              : '/patient-dashboard';
 
-        navigate(redirectPath);
-        toast.success('Login successful!');
+          navigate(redirectPath);
+          toast.success('Login successful!');
+          
+        } else if (data.tempToken && data.question) {
+          const { tempToken, question } = data;
+          setTempToken(tempToken);
+          setSecurityQuestion(question);
+          setStep(2);
+          toast.info('Please answer your security question to continue.');
+        } else {
+          throw new Error('Unexpected response format from server');
+        }
+      } else if (result.success && result.data) {
+        const data = result.data;
         
-      } else if (data.tempToken && data.question) {
-        const { tempToken, question } = data;
-        setTempToken(tempToken);
-        setSecurityQuestion(question);
-        setStep(2);
-        toast.info('Please answer your security question to continue.');
-        
+        if (data.accessToken && data.user) {
+          const { accessToken, refreshToken, user } = data;
+          
+          localStorage.setItem('accessToken', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+          }
+
+          dispatch(loginSuccess({
+            id: user._id || user.id,
+            email: user.email,
+            role: user.role,
+            isVerified: user.emailVerified || user.isVerified,
+            profile: {
+              fullName: user.fullName || user.name,
+              email: user.email,
+            },
+          }));
+
+          // Updated dashboard routing
+          const redirectPath = user.role === 'doctor'
+            ? '/doctor-dashboard'
+            : user.role === 'admin'
+              ? '/admin-dashboard'
+              : '/patient-dashboard';
+
+          navigate(redirectPath);
+          toast.success('Login successful!');
+          
+        } else if (data.tempToken && data.question) {
+          const { tempToken, question } = data;
+          setTempToken(tempToken);
+          setSecurityQuestion(question);
+          setStep(2);
+        }
       } else {
         throw new Error('Unexpected response format from server');
       }
-      
-    } else if (result.success && result.data) {
-      const data = result.data;
-      
-      if (data.accessToken && data.user) {
-        const { accessToken, refreshToken, user } = data;
-        
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStepTwo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tempToken}`,
+        },
+        body: JSON.stringify({ securityAnswer }),
+        credentials: 'same-origin',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Verification failed');
+      }
+
+      if (result.status === 200 && result.body) {
+        const { accessToken, refreshToken, user } = result.body;
+
+        if (!accessToken || !user) {
+          throw new Error('Missing required authentication data');
+        }
+
         localStorage.setItem('accessToken', accessToken);
         if (refreshToken) {
           localStorage.setItem('refreshToken', refreshToken);
         }
 
         dispatch(loginSuccess({
-          id: user._id || user.id,
+          id: user.ID || user.id || user._id,
           email: user.email,
           role: user.role,
-          isVerified: user.emailVerified || user.isVerified,
+          isVerified: true,
           profile: {
-            fullName: user.fullName || user.name,
+            fullName: user.fullName || user.name || 'User', 
             email: user.email,
           },
         }));
 
+        // Updated dashboard routing
         const redirectPath = user.role === 'doctor'
-          ? '/doctor/dashboard'
+          ? '/doctor-dashboard'
           : user.role === 'admin'
-            ? '/admin/dashboard'
-            : '/patient/dashboard';
+            ? '/admin-dashboard'
+            : '/patient-dashboard';
 
         navigate(redirectPath);
         toast.success('Login successful!');
-        
-      } else if (data.tempToken && data.question) {
-        const { tempToken, question } = data;
-        setTempToken(tempToken);
-        setSecurityQuestion(question);
-        setStep(2);
+
+      } else {
+        throw new Error('Invalid authentication data received');
       }
-      
-    } else {
-      throw new Error('Unexpected response format from server');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Verification failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
-
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
-    setError(errorMessage);
-    toast.error(errorMessage);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  const handleStepTwo = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError('');
-
-  try {
-    const response = await fetch('http://localhost:8080/api/auth/login/verify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tempToken}`,
-      },
-      body: JSON.stringify({ securityAnswer }),
-      credentials: 'same-origin',
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Verification failed');
-    }
-
-    if (result.status === 200 && result.body) {
-      const { accessToken, refreshToken, user } = result.body;
-
-      if (!accessToken || !user) {
-        throw new Error('Missing required authentication data');
-      }
-
-      localStorage.setItem('accessToken', accessToken);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
-
-      dispatch(loginSuccess({
-        id: user.ID || user.id || user._id,
-        email: user.email,
-        role: user.role,
-        isVerified: true,
-        profile: {
-          fullName: user.fullName || user.name || 'User', 
-          email: user.email,
-        },
-      }));
-
-      const redirectPath = user.role === 'doctor'
-        ? '/doctor/dashboard'
-        : user.role === 'admin'
-          ? '/admin/dashboard'
-          : '/patient/dashboard';
-
-      navigate(redirectPath);
-      toast.success('Login successful!');
-
-    } else {
-      throw new Error('Invalid authentication data received');
-    }
-
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Verification failed. Please try again.';
-    setError(errorMessage);
-    toast.error(errorMessage);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
