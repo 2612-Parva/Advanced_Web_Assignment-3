@@ -8,7 +8,10 @@ import AppointmentBooking from './pages/AppointmentBooking'
 import DoctorSelection from './pages/DoctorSelection'
 import DoctorProfile from './pages/DoctorProfile';
 import PatientProfile from './pages/PatientProfile'
-
+import ForgotPassword from './pages/ForgotPassword';
+import VerifyOtpPage from './pages/VerifyOTP';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 
 
 function App() {
@@ -23,7 +26,12 @@ function App() {
         <Route path="/select-doctor" element={<DoctorSelection />} />
         <Route path="/doctor-profile" element={<DoctorProfile />} />
         <Route path="/patient-profile" element={<PatientProfile />} />
-        <Route path="*" element={<Home/>} /> 
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+
+        <Route path="*" element={<Home />} />
       </Routes>
     </Router>
     </div>
