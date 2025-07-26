@@ -16,6 +16,7 @@ import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import PatientCalendar from './pages/PatientCalendar'
 import DoctorCalendar from './pages/DoctorCalendar'
+import ChatPage from './pages/ChatPage'
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOtpPage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/chat" element={<ChatPage />} /> 
 
         <Route path="*" element={<Home/>} /> 
       </Routes>
