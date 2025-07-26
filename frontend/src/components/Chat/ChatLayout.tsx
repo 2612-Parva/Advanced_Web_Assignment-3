@@ -17,14 +17,6 @@ const ChatLayout = () => {
   const userId = decoded?.userId;
   const role = decoded?.role;
 
-  if (!userId || !token || !role) {
-    return (
-      <div className="p-8 text-center text-red-600">
-        You must be logged in to access the chat.
-      </div>
-    );
-  }
-
   const fetchAppointments = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/appointments`, {
@@ -54,8 +46,9 @@ const ChatLayout = () => {
   };
 
   useEffect(() => {
+    if (!userId || !token || !role) return;
     fetchAppointments();
-  }, []);
+  }, [userId, token, role]);
 
   useEffect(() => {
     if (activeAppointment) {
@@ -65,11 +58,21 @@ const ChatLayout = () => {
 
   useEffect(() => {
     if (!activeAppointment) return;
+
     const interval = setInterval(() => {
       fetchMessages(activeAppointment._id);
     }, 5000);
+
     return () => clearInterval(interval);
   }, [activeAppointment]);
+
+  if (!userId || !token || !role) {
+    return (
+      <div className="p-8 text-center text-red-600">
+        You must be logged in to access the chat.
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -78,16 +81,16 @@ const ChatLayout = () => {
         <Sidebar />
       </div>
 
-      {/* Right content */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100">
         {/* Top navigation */}
-        <div className="w-full border-b shadow-sm bg-white">
+        <div className="h-16 w-full border-b shadow-sm bg-white">
           <TopNavBar />
         </div>
 
-        {/* Main chat layout */}
-        <main className="flex-1 overflow-y-auto p-2">
-          <div className="max-w-7xl h-[85vh] mx-auto rounded-xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-md border border-gray-200 flex">
+        {/* Chat layout */}
+        <main className="flex-1 p-0 h-[calc(100vh-4rem)] overflow-hidden">
+          <div className="h-full w-full flex">
             {/* Appointment list */}
             <AppointmentList
               appointments={appointments}
@@ -103,7 +106,6 @@ const ChatLayout = () => {
                 <ChatBox
                   appointment={activeAppointment}
                   messages={messages}
-                  setMessages={setMessages}
                   user={{ userId, role, token }}
                   fetchMessages={fetchMessages}
                 />

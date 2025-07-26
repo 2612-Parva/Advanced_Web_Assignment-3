@@ -5,7 +5,6 @@ import MessageBubble from './MessageBubble';
 interface Props {
   appointment: AppointmentType | null;
   messages: MessageType[];
-  setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
   user: {
     userId: string;
     role: 'patient' | 'doctor';
@@ -14,14 +13,13 @@ interface Props {
   fetchMessages: (appointmentId: string) => void;
 }
 
-const ChatBox: React.FC<Props> = ({ appointment, messages, setMessages, user, fetchMessages }) => {
+const ChatBox: React.FC<Props> = ({ appointment, messages, user, fetchMessages }) => {
   const [newMessage, setNewMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  const isChatActive =
-    appointment && new Date(appointment.scheduledFor).getTime() > Date.now();
+  const isChatActive = appointment && new Date(appointment.scheduledFor).getTime() > Date.now();
 
   const scrollToBottom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -80,9 +78,9 @@ const ChatBox: React.FC<Props> = ({ appointment, messages, setMessages, user, fe
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full">
+    <div className="flex flex-col flex-1 h-full bg-white">
       {/* Scrollable messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-white">
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
         {messages.length === 0 ? (
           <p className="text-center text-gray-400 mt-10">Start a conversation</p>
         ) : (
