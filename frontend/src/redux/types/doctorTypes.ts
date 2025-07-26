@@ -1,4 +1,14 @@
+import type { ReactNode } from "react";
+import type { Key } from "readline";
+
 export interface Doctor {
+  isActive: boolean;
+  id: Key | null | undefined;
+  name: ReactNode;
+  email: ReactNode;
+  isVerified: any;
+  status: string;
+  verified: boolean;
   _id: string;
   doctorId: {
     _id: string;
@@ -38,6 +48,11 @@ export interface DoctorAvailability {
 }
 
 export interface DoctorCredential {
+  documentType: ReactNode;
+  doctorEmail: ReactNode;
+  doctorName: ReactNode;
+  doctorProfilePicture: string;
+  id: Key | null | undefined;
   _id: string;
   doctorId: string;
   fileName: string;
