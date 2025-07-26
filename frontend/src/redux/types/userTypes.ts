@@ -24,8 +24,8 @@ export interface VerificationResponse {
 export type VerificationStatus = 'pending' | 'verified' | 'unverified' | null;
 
 export interface UserState {
-  doctorsError: any;
-  selectedDoctor: any;
+  doctorsError: boolean;
+  selectedDoctor: boolean;
   doctorsLoading: boolean;
   doctors: never[];
   profile: UserProfile | undefined;
