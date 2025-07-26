@@ -19,7 +19,7 @@ const ChatLayout = () => {
 
   const fetchAppointments = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/appointments`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/appointments`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -33,7 +33,7 @@ const ChatLayout = () => {
 
   const fetchMessages = async (appointmentId: string) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/messages/${appointmentId}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/messages/${appointmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

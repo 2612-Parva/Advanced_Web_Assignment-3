@@ -48,7 +48,7 @@ const ChatBox: React.FC<Props> = ({ appointment, messages, user, fetchMessages }
 
     try {
       setLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/messages/send`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/messages/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
