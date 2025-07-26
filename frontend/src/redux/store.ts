@@ -5,7 +5,7 @@ import userReducer from './reducers/userReducers';
 import appointmentReducer from './reducers/appointmentReducer';
 import patientReducer from './reducers/patientReducer';
 import doctorReducer from './reducers/doctorReducer';
-import adminReducer from './reducers/adminReducer'; 
+//import adminReducer from './reducers/adminReducer'; 
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +15,7 @@ export const store = configureStore({
     appointment: appointmentReducer,
     patient: patientReducer,
     doctor: doctorReducer, 
-    admin: adminReducer
+    //admin: adminReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
