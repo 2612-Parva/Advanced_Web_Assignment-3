@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { BASE_URL } from '../constant_url';
 
 function PatientRegister() {
   const [form, setForm] = useState({
@@ -63,7 +62,7 @@ function PatientRegister() {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/register`, {
+      const response = await fetch(`http://localhost:8080/api/auth/register`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -85,7 +84,6 @@ function PatientRegister() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle specific error codes
         switch (response.status) {
           case 400:
             throw new Error(data.message || 'Invalid registration data');
@@ -98,8 +96,6 @@ function PatientRegister() {
         }
       }
 
-      // Only show success message and redirect - DON'T dispatch Redux action
-      // The user will be added to Redux state only after email verification and login
       setSuccessMessage(data.message || 'Registration successful! A verification link has been sent to your email.');
       toast.success('Registration successful! Please check your email.');
 

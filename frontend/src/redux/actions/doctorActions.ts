@@ -4,7 +4,6 @@ import type {
     Doctor,
     DoctorAvailability,
 } from '../types/doctorTypes';
-import { BASE_URL } from '../../constant_url';
 
 // Define API response structure
 interface ApiResponse<T = unknown> {
@@ -40,7 +39,7 @@ const apiRequest = async (
   const token = localStorage.getItem('accessToken');
   const config = {
     method,
-    url: `${BASE_URL}${url}`,
+    url: `http://localhost:8080${url}`,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -147,7 +146,7 @@ export const uploadProfilePicture = createAsyncThunk(
       formData.append('image', file);
       
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post<DirectApiResponse>(`${BASE_URL}/doctors/profile-picture`, formData, {
+      const response = await axios.post<DirectApiResponse>(`http://localhost:8080/doctors/profile-picture`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
@@ -161,7 +160,6 @@ export const uploadProfilePicture = createAsyncThunk(
   }
 );
 
-// Availability Actions
 export const updateAvailability = createAsyncThunk(
   'doctor/updateAvailability',
   async (slots: DoctorAvailability[], { rejectWithValue }) => {
@@ -189,7 +187,6 @@ export const getAvailability = createAsyncThunk(
   }
 );
 
-// Credentials Actions
 export const submitDoctorCredential = createAsyncThunk(
   'doctor/submitDoctorCredential',
   async ({ doctorId, file }: { doctorId: string; file: File }, { rejectWithValue }) => {
@@ -198,7 +195,7 @@ export const submitDoctorCredential = createAsyncThunk(
       formData.append('file', file);
       
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post<DirectApiResponse>(`${BASE_URL}/doctors/${doctorId}/credentials`, formData, {
+      const response = await axios.post<DirectApiResponse>(`http://localhost:8080/doctors/${doctorId}/credentials`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
@@ -272,7 +269,6 @@ export const rejectDoctorCredential = createAsyncThunk(
   }
 );
 
-// Public Actions
 export const getPublicDoctorProfile = createAsyncThunk(
   'doctor/getPublicDoctorProfile',
   async (doctorId: string, { rejectWithValue }) => {

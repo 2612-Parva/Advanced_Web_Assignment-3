@@ -1,6 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import type { Appointment, ApiResponse } from '../types/appointmentTypes';
-import { BASE_URL } from '../../constant_url';
 
 declare type RequestInit = globalThis.RequestInit;
 
@@ -17,7 +16,7 @@ const fetchWithAuth = async <T>(url: string, options: RequestInit = {}): Promise
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(`${BASE_URL}${url}`, {
+  const response = await fetch(`http://localhost:8080${url}`, {
     ...options,
     headers,
   });

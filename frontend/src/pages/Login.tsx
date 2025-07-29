@@ -1,21 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../redux/hooks';
-import { loginSuccess } from '../redux/reducers/userReducers'; 
+import { loginSuccess } from '../redux/reducers/userReducers';
 import { toast } from 'react-toastify';
-import { BASE_URL } from '../constant_url';
+
+const EmailInput = memo(({ 
+  value, 
+  onChange 
+}: { 
+  value: string; 
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void 
+}) => (
+  <input
+    type="email"
+    className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
+    placeholder="Enter your email"
+    value={value}
+    onChange={onChange}
+    required
+  />
+));
+
+const PasswordInput = memo(({ 
+  value, 
+  onChange, 
+  showPassword, 
+  togglePassword 
+}: { 
+  value: string; 
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  showPassword: boolean;
+  togglePassword: () => void;
+}) => (
+  <div className="relative">
+    <input
+      type={showPassword ? 'text' : 'password'}
+      className="w-full border border-gray-300 rounded px-2 py-1 text-xs pr-6"
+      placeholder="Enter your password"
+      value={value}
+      onChange={onChange}
+      minLength={6}
+      required
+    />
+    <button
+      type="button"
+      onClick={togglePassword}
+      className="absolute right-1 bottom-1 text-xs text-blue-600 px-1"
+    >
+      {showPassword ? 'Hide' : 'Show'}
+    </button>
+  </div>
+));
+
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
   const [securityQuestion, setSecurityQuestion] = useState('');
   const [securityAnswer, setSecurityAnswer] = useState('');
   const [tempToken, setTempToken] = useState('');
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
+  const handleEmailChange = useMemo(() => 
+    (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value), 
+    []
+  );
+
+  const handlePasswordChange = useMemo(() => 
+    (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value), 
+    []
+  );
+
+  const togglePasswordVisibility = useMemo(() => 
+    () => setShowPassword(prev => !prev), 
+    []
+  );
+
+  const securityQuestionSection = useMemo(() => (
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-1">Security Question</label>
+      <p className="text-xs bg-gray-100 p-2 rounded">{securityQuestion}</p>
+    </div>
+  ), [securityQuestion]);
 
   const handleStepOne = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,122 +93,45 @@ function Login() {
     setError('');
 
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+      const response = await fetch(`http://localhost:8080/api/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
         credentials: 'same-origin',
       });
 
       const result = await response.json();
 
-      if (!response.ok) {
-        switch (response.status) {
-          case 400:
-            throw new Error(result.message || 'Invalid email or password');
-          case 401:
-            throw new Error(result.message || 'Invalid credentials');
-          case 403:
-            throw new Error(result.message || 'Account not verified. Please check your email.');
-          case 404:
-            throw new Error(result.message || 'Account not found');
-          case 409:
-            throw new Error(result.message || 'Account conflict. Please contact support.');
-          case 500:
-            throw new Error('Server error. Please try again later.');
-          default:
-            throw new Error(result.message || `Login failed (${response.status})`);
-        }
-      }
+      if (!response.ok) throw new Error(result.message || 'Login failed');
 
       if (result.status === 200 && result.body) {
-        const data = result.body;
+        const { accessToken, refreshToken, user } = result.body;
         
-        if (data.accessToken && data.user) {
-          const { accessToken, refreshToken, user } = data;
-          
-          localStorage.setItem('accessToken', accessToken);
-          if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
-          }
+        localStorage.setItem('accessToken', accessToken);
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 
-          dispatch(loginSuccess({
-            id: user.ID || user._id || user.id, 
-            email: user.email,
-            role: user.role,
-            isVerified: user.emailVerified || user.isVerified || true, 
-            profile: {
-              fullName: user.fullName || user.name || 'User',
-              email: user.email,
-            },
-          }));
+        dispatch(loginSuccess({
+          id: user.ID || user._id || user.id,
+          email: user.email,
+          role: user.role,
+          isVerified: user.emailVerified || user.isVerified || true,
+          profile: { fullName: user.fullName || user.name || 'User', email: user.email },
+        }));
 
-          // Updated dashboard routing
-          const redirectPath = user.role === 'doctor'
-            ? '/doctor-dashboard'
-            : user.role === 'admin'
-              ? '/admin-dashboard'
-              : '/patient-dashboard';
-
-          navigate(redirectPath);
-          toast.success('Login successful!');
-          
-        } else if (data.tempToken && data.question) {
-          const { tempToken, question } = data;
-          setTempToken(tempToken);
-          setSecurityQuestion(question);
-          setStep(2);
-          toast.info('Please answer your security question to continue.');
-        } else {
-          throw new Error('Unexpected response format from server');
-        }
-      } else if (result.success && result.data) {
-        const data = result.data;
-        
-        if (data.accessToken && data.user) {
-          const { accessToken, refreshToken, user } = data;
-          
-          localStorage.setItem('accessToken', accessToken);
-          if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
-          }
-
-          dispatch(loginSuccess({
-            id: user._id || user.id,
-            email: user.email,
-            role: user.role,
-            isVerified: user.emailVerified || user.isVerified,
-            profile: {
-              fullName: user.fullName || user.name,
-              email: user.email,
-            },
-          }));
-
-          // Updated dashboard routing
-          const redirectPath = user.role === 'doctor'
-            ? '/doctor-dashboard'
-            : user.role === 'admin'
-              ? '/admin-dashboard'
-              : '/patient-dashboard';
-
-          navigate(redirectPath);
-          toast.success('Login successful!');
-          
-        } else if (data.tempToken && data.question) {
-          const { tempToken, question } = data;
-          setTempToken(tempToken);
-          setSecurityQuestion(question);
-          setStep(2);
-        }
+        navigate(user.role === 'doctor' ? '/doctor-dashboard' : 
+               user.role === 'admin' ? '/admin-dashboard' : '/patient-dashboard');
+        toast.success('Login successful!');
+      } else if (result.body?.tempToken && result.body?.question) {
+        setTempToken(result.body.tempToken);
+        setSecurityQuestion(result.body.question);
+        setStep(2);
+        toast.info('Answer security question to continue.');
       } else {
-        throw new Error('Unexpected response format from server');
+        throw new Error('Unexpected response format');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      setError(err instanceof Error ? err.message : 'Login failed');
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -150,62 +143,37 @@ function Login() {
     setError('');
 
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/login/verify`, {
+      const response = await fetch(`http://localhost:8080/api/auth/login/verify`, {
         method: 'POST',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tempToken}`,
+          'Authorization': `Bearer ${tempToken}` 
         },
         body: JSON.stringify({ securityAnswer }),
         credentials: 'same-origin',
       });
 
       const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Verification failed');
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Verification failed');
-      }
+      const { accessToken, refreshToken, user } = result.body;
+      localStorage.setItem('accessToken', accessToken);
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 
-      if (result.status === 200 && result.body) {
-        const { accessToken, refreshToken, user } = result.body;
+      dispatch(loginSuccess({
+        id: user.ID || user.id || user._id,
+        email: user.email,
+        role: user.role,
+        isVerified: true,
+        profile: { fullName: user.fullName || user.name || 'User', email: user.email },
+      }));
 
-        if (!accessToken || !user) {
-          throw new Error('Missing required authentication data');
-        }
-
-        localStorage.setItem('accessToken', accessToken);
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
-        }
-
-        dispatch(loginSuccess({
-          id: user.ID || user.id || user._id,
-          email: user.email,
-          role: user.role,
-          isVerified: true,
-          profile: {
-            fullName: user.fullName || user.name || 'User', 
-            email: user.email,
-          },
-        }));
-
-        // Updated dashboard routing
-        const redirectPath = user.role === 'doctor'
-          ? '/doctor-dashboard'
-          : user.role === 'admin'
-            ? '/admin-dashboard'
-            : '/patient-dashboard';
-
-        navigate(redirectPath);
-        toast.success('Login successful!');
-
-      } else {
-        throw new Error('Invalid authentication data received');
-      }
+      navigate(user.role === 'doctor' ? '/doctor-dashboard' : 
+             user.role === 'admin' ? '/admin-dashboard' : '/patient-dashboard');
+      toast.success('Login successful!');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Verification failed. Please try again.';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      setError(err instanceof Error ? err.message : 'Verification failed');
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -219,7 +187,7 @@ function Login() {
           <img src="/login-illustration.png" alt="Login" className="w-56 h-auto mb-4" />
           <p className="text-base font-semibold text-center mb-1">Your Health, Your Way — Anytime, Anywhere.</p>
           <p className="text-xs text-center max-w-md">
-            Log in to connect with licensed healthcare providers for secure, convenient care. New here? Sign up to get started on your path to better health.
+            Log in to connect with licensed healthcare providers for secure, convenient care.
           </p>
         </div>
 
@@ -232,44 +200,23 @@ function Login() {
             {step === 1 ? 'Login to Your Account' : 'Answer Security Question'}
           </h2>
 
-          {error && (
-            <div className="mb-3 p-2 bg-red-100 text-red-700 rounded-md text-xs">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-3 p-2 bg-red-100 text-red-700 rounded-md text-xs">{error}</div>}
 
           {step === 1 ? (
             <form onSubmit={handleStepOne} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
-                <input
-                  type="email"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <EmailInput value={email} onChange={handleEmailChange} />
               </div>
 
-              <div className="relative">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-xs pr-6"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  minLength={6}
-                  required
+                <PasswordInput 
+                  value={password} 
+                  onChange={handlePasswordChange}
+                  showPassword={showPassword}
+                  togglePassword={togglePasswordVisibility}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-1 bottom-1 text-xs text-blue-600 px-1"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
               </div>
 
               <div className="flex items-center justify-between text-xs text-gray-600">
@@ -285,15 +232,7 @@ function Login() {
                 disabled={isLoading}
                 className={`w-full bg-blue-800 text-white py-1.5 rounded hover:bg-blue-900 transition flex justify-center items-center ${isLoading ? 'opacity-75' : ''}`}
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Logging in...
-                  </>
-                ) : 'Continue'}
+                {isLoading ? 'Logging in...' : 'Continue'}
               </button>
 
               <p className="text-xs text-center mt-3 text-gray-600">
@@ -305,11 +244,7 @@ function Login() {
             </form>
           ) : (
             <form onSubmit={handleStepTwo} className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Security Question</label>
-                <p className="text-xs bg-gray-100 p-2 rounded">{securityQuestion}</p>
-              </div>
-
+              {securityQuestionSection}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Your Answer</label>
                 <input
@@ -327,15 +262,7 @@ function Login() {
                 disabled={isLoading}
                 className={`w-full bg-blue-800 text-white py-1.5 rounded hover:bg-blue-900 transition flex justify-center items-center ${isLoading ? 'opacity-75' : ''}`}
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Verifying...
-                  </>
-                ) : 'Complete Login'}
+                {isLoading ? 'Verifying...' : 'Complete Login'}
               </button>
 
               <button

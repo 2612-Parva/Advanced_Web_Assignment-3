@@ -1,60 +1,55 @@
-// src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Login from './pages/Login'
-import PatientRegister from './pages/PatientRegister'
-import DoctorRegister from './pages/DoctorRegister'
-import Home from './pages/Home'
-import AppointmentBooking from './pages/AppointmentBooking'
-import DoctorSelection from './pages/DoctorSelection'
-import DoctorProfile from './pages/DoctorProfile'
-import PatientProfile from './pages/PatientProfile'
-import PatientDashboard from './pages/PatientDashboard'
-import DoctorDashboard from './pages/DoctorDashboard'
-import ForgotPassword from './pages/ForgotPassword'
-import VerifyOtpPage from './pages/VerifyOtp'
-import ResetPassword from './pages/ResetPassword'
-import VerifyEmail from './pages/VerifyEmail'
-import PatientCalendar from './pages/PatientCalendar'
-import DoctorCalendar from './pages/DoctorCalendar'
-import BookAppointment from './pages/AppointmentBooking'
-//import AdminDashboard from './pages/AdminDashboard'
+import { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoadingSpinner from './pages/LoadingSpinner'; 
 
-import ChatPage from './pages/ChatPage'
-
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/Login'));
+const PatientRegister = lazy(() => import('./pages/PatientRegister'));
+const DoctorRegister = lazy(() => import('./pages/DoctorRegister'));
+const AppointmentBooking = lazy(() => import('./pages/AppointmentBooking'));
+const DoctorSelection = lazy(() => import('./pages/DoctorSelection'));
+const DoctorProfile = lazy(() => import('./pages/DoctorProfile'));
+const PatientProfile = lazy(() => import('./pages/PatientProfile'));
+const PatientDashboard = lazy(() => import('./pages/PatientDashboard'));
+const DoctorDashboard = lazy(() => import('./pages/DoctorDashboard'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const VerifyOtpPage = lazy(() => import('./pages/VerifyOtp'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const PatientCalendar = lazy(() => import('./pages/PatientCalendar'));
+const DoctorCalendar = lazy(() => import('./pages/DoctorCalendar'));
+const BookAppointment = lazy(() => import('./pages/AppointmentBooking'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
 
 function App() {
   return (
     <div data-testid="app-container">
-      
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/patientregister" element={<PatientRegister />} />
-        <Route path="/doctorregister" element={<DoctorRegister />} />
-        <Route path="/book-appointment" element={<AppointmentBooking />} />
-        <Route path="/select-doctor" element={<DoctorSelection />} />
-        <Route path="/doctor-profile" element={<DoctorProfile />} />
-        <Route path="/patient-profile" element={<PatientProfile />} />
-        <Route path="/patient-dashboard" element={<PatientDashboard />} />
-        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-        <Route path="/patient-calendar" element={<PatientCalendar />} />
-        <Route path="/doctor-calendar" element={<DoctorCalendar />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<VerifyOtpPage />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        {/* In your main router file (App.tsx or Routes.tsx) */}
-        <Route path="/patient/book-appointment" element={<BookAppointment />} />
-        {/*<Route path="/patient/appointments" element={<AppointmentsList />} />*/}
-        {/*<Route path="/admin-dashboard" element={<AdminDashboard />} />*/}
-
-        <Route path="/chat" element={<ChatPage />} /> 
-
-        <Route path="*" element={<Home/>} /> 
-      </Routes>
-    </Router>
+      <Router>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/patientregister" element={<PatientRegister />} />
+            <Route path="/doctorregister" element={<DoctorRegister />} />
+            <Route path="/book-appointment" element={<AppointmentBooking />} />
+            <Route path="/select-doctor" element={<DoctorSelection />} />
+            <Route path="/doctor-profile" element={<DoctorProfile />} />
+            <Route path="/patient-profile" element={<PatientProfile />} />
+            <Route path="/patient-dashboard" element={<PatientDashboard />} />
+            <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+            <Route path="/patient-calendar" element={<PatientCalendar />} />
+            <Route path="/doctor-calendar" element={<DoctorCalendar />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtpPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/patient/book-appointment" element={<BookAppointment />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="*" element={<Home />} />
+          </Routes>
+        </Suspense>
+      </Router>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

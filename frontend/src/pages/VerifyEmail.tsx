@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { BASE_URL } from '../constant_url';
 
 const VerifyEmail: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'already-verified' | 'error'>('loading');
@@ -24,7 +23,7 @@ const VerifyEmail: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`${BASE_URL}/api/auth/verify-email?token=${token}`, {
+        const response = await fetch(`http://localhost:8080/api/auth/verify-email?token=${token}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

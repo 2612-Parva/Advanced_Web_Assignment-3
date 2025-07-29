@@ -3,7 +3,6 @@ import type {
   PatientProfile,
   PatientDocument
 } from '../types/patientTypes';
-import { BASE_URL } from '../../constant_url';
 
 type RequestInit = globalThis.RequestInit;
 type HeadersInit = globalThis.HeadersInit;
@@ -32,7 +31,7 @@ const fetchWithAuth = async <T>(url: string, options: RequestInit = {}, isJson: 
     ...options.headers,
   };
 
-  const response = await fetch(`${BASE_URL}${url}`, {
+  const response = await fetch(`http://localhost:8080${url}`, {
     ...options,
     headers,
   });
